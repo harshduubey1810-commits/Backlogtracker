@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Backlog Tracker</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Use Inter font */
+        body {
+            font-family: "Inter", sans-serif;
+        }
+        /* Hide the modals by default */
+        #modal, #help-message {
+            display: none;
+        }
+        /* Style for the card buttons */
+        .card-btn {
+            position: absolute;
+            width: 2rem; /* 32px */
+            height: 2rem; /* 32px */
+            border-radius: 9999px; /* full */
+            background-color: rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 1.25rem; /* 20px */
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent; /* Remove tap flash on mobile */
+        }
+        .card-btn:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+        .card-btn:active {
+            transform: scale(0.95);
+        }
+        /* Ensure card text doesn't trigger clicks (for event delegation) */
+        .card-text {
+            pointer-events: none;
+        }
+
+        /* NEW: Style for the help button */
+        #help-btn {
+            position: absolute; /* <-- CHANGED from fixed */
+            top: 0.5rem; /* Adjusted for new position */
+            right: 0.5rem; /* Adjusted for new position */
+            z-index: 40; /* Added z-index */
+            width: 2.5rem; /* 40px */
+            height: 2.5rem; /* 40px */
+            background-color: #3b82f6; /* blue-600 */
+            color: white;
+            border-radius: 9999px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem; /* 20px */
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        #help-btn:hover {
+            transform: scale(1.1);
+            background-color: #2563eb; /* blue-700 */
+        }
+
+        /* NEW: Style for the help message box */
+        #help-message {
+            position: absolute; /* <-- CHANGED from fixed */
+            top: 3.5rem; /* 0.5rem (btn top) + 2.5rem (btn height) + 0.5rem (spacing) */
+            right: 0.5rem; /* Adjusted for new position */
+            z-index: 50;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.5rem; /* 8px */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb; /* gray-200 */
+            /* width: 256px; /* 16rem */ /* <-- Removed fixed width */
+            max-width: 300px; /* <-- Use max-width to prevent "cut out" text */
+            text-align: center; /* <-- Center the text as requested */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8">
+
+    <!-- MOVED Help Button (now inside header) -->
+    <!-- MOVED Help Message Box (now inside header) -->
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <!-- ADDED 'relative' class to act as positioning anchor -->
+        <header class="mb-8 relative">
+            <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800">
+                Subject Backlog Tracker
+            </h1>
+            <!-- This instruction <p> tag has been removed -->
+
+            <!-- MOVED HERE -->
+            <!-- NEW Help Button -->
+            <button id="help-btn">?</button>
+
+            <!-- NEW Help Message Box -->
+            <div id="help-message">
+                <p class="text-gray-700 text-sm font-semibold">How to use:</p>
+                <!-- Added inline-block and text-left to center the list block but keep list text left-aligned -->
+                <ul class="list-disc list-inside mt-2 text-gray-600 text-sm space-y-1 inline-block text-left">
+                    <li>Click a subject card to set a specific number.</li>
+                    <li>Use <span class="font-bold text-blue-600">+</span> to add one lecture.</li>
+                    <li>Use <span class="font-bold text-red-500">-</span> to remove one lecture.</li>
+                </ul>
+            </div>
+        </header>
+
+        <!-- Total Backlog Display -->
+        <div class="mb-8 bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-700 text-center">
+                Total Pending Lectures
+            </h2>
+            <div id="total-backlog" class="text-6xl font-extrabold text-blue-600 text-center mt-2">
+                0
+            </div>
+        </div>
+
+        <!-- Subject Cards Grid -->
+        <div id="subject-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Subject cards will be injected here by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Modal "Screen" -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4">
+        <!-- ... existing modal code ... -->
+        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm">
+            <h3 id="modal-title" class="text-2xl font-bold mb-4 text-gray-800">
+                Update Backlog
+            </h3>
+            <p class="text-gray-600 mb-4">
+                Enter the total number of pending lectures for this subject.
+            </p>
+            <div>
+                <label for="lecture-input" class="block text-sm font-medium text-gray-700 mb-1">
+                    Pending Lectures
+                </label>
+                <input type="number" id="lecture-input" min="0" 
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="Enter a number...">
+            </div>
+            
+            <input type="hidden" id="current-subject">
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <button id="close-modal-btn" 
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                    Cancel
+                </button>
+                <button id="save-btn" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const subjects = [
+                // ... existing subjects array ...
+                { name: 'Physics', color: 'bg-blue-500' },
+                { name: 'Chemistry', color: 'bg-green-500' },
+                { name: 'Botany', color: 'bg-yellow-500' },
+                { name: 'Zoology', color: 'bg-red-500' }
+            ];
+
+            const grid = document.getElementById('subject-grid');
+            const totalBacklogEl = document.getElementById('total-backlog');
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modal-title');
+            const lectureInput = document.getElementById('lecture-input');
+            const currentSubjectInput = document.getElementById('current-subject');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const saveBtn = document.getElementById('save-btn');
+
+            // NEW: Help elements
+            const helpBtn = document.getElementById('help-btn');
+            const helpMessage = document.getElementById('help-message');
+
+            let backlogData = {};
+
+            // --- Core Functions ---
+
+            // Load data from localStorage
+            function loadData() {
+                // ... existing loadData function ...
+                const savedData = localStorage.getItem('backlogData');
+                if (savedData) {
+                    backlogData = JSON.parse(savedData);
+                } else {
+                    subjects.forEach(subject => {
+                        backlogData[subject.name] = 0;
+                    });
+                }
+            }
+
+            // Save data to localStorage
+            function saveData() {
+                // ... existing saveData function ...
+                localStorage.setItem('backlogData', JSON.stringify(backlogData));
+            }
+
+            // Update the total backlog display
+            function updateTotals() {
+                // ... existing updateTotals function ...
+                const total = Object.values(backlogData).reduce((sum, val) => sum + val, 0);
+                totalBacklogEl.textContent = total;
+            }
+
+            // Update the count on a single card (more efficient)
+            function updateCardCount(subjectName) {
+                // ... existing updateCardCount function ...
+                const countEl = document.getElementById(`count-${subjectName}`);
+                if (countEl) {
+                    countEl.textContent = backlogData[subjectName] || 0;
+                }
+            }
+
+            // Re-draw all the subject cards
+            function renderCards() {
+                // ... existing renderCards function ...
+                grid.innerHTML = ''; // Clear existing cards
+                subjects.forEach(subject => {
+                    const count = backlogData[subject.name] || 0;
+                    const card = document.createElement('div');
+                    // Add 'subject-card' class back so it can be clicked
+                    card.className = `subject-card relative ${subject.color} text-white p-5 rounded-xl shadow-lg cursor-pointer`;
+                    card.dataset.subject = subject.name; 
+
+                    card.innerHTML = `
+                        <!-- Main Content -->
+                        <h2 class="text-2xl font-bold card-text">${subject.name}</h2>
+                        <p class="text-5xl font-extrabold mt-4 card-text" id="count-${subject.name}">${count}</p>
+                        <p class="mt-1 text-sm opacity-90 card-text">lectures pending</p>
+                        
+                        <!-- Buttons -->
+                        <button class="card-btn plus-btn" style="top: 0.5rem; right: 0.5rem;" data-subject="${subject.name}">
+                            +
+                        </button>
+                        <button class="card-btn minus-btn" style="bottom: 0.5rem; right: 0.5rem;" data-subject="${subject.name}">
+                            -
+                        </button>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+            
+            // --- Card Button Handlers ---
+            
+            function handleIncrement(subjectName) {
+                // ... existing handleIncrement function ...
+                backlogData[subjectName] = (backlogData[subjectName] || 0) + 1;
+                saveData();
+                updateCardCount(subjectName);
+                updateTotals();
+            }
+            
+            function handleDecrement(subjectName) {
+                // ... existing handleDecrement function ...
+                let currentCount = backlogData[subjectName] || 0;
+                if (currentCount > 0) {
+                    backlogData[subjectName] = currentCount - 1;
+                    saveData();
+                    updateCardCount(subjectName);
+                    updateTotals();
+                }
+            }
+
+            // --- Modal Functions ---
+
+            function openModal(subjectName) {
+                // ... existing openModal function ...
+                modalTitle.textContent = `Update ${subjectName} Backlog`;
+                lectureInput.value = backlogData[subjectName] || 0;
+                currentSubjectInput.value = subjectName;
+                modal.style.display = 'flex';
+                lectureInput.focus(); 
+            }
+
+            function closeModal() {
+                // ... existing closeModal function ...
+                modal.style.display = 'none';
+            }
+
+            function handleSave() {
+                // ... existing handleSave function ...
+                const subjectName = currentSubjectInput.value;
+                const newCount = parseInt(lectureInput.value, 10);
+
+                if (!isNaN(newCount) && newCount >= 0) {
+                    backlogData[subjectName] = newCount;
+                    saveData();
+                    updateCardCount(subjectName); 
+                    updateTotals();
+                    closeModal();
+                } else {
+                    lectureInput.classList.add('border-red-500', 'ring-red-500');
+                    lectureInput.placeholder = "Please enter a valid number (e.g., 0, 5, 10)";
+                    lectureInput.value = ''; 
+                    
+                    setTimeout(() => {
+                        lectureInput.classList.remove('border-red-500', 'ring-red-500');
+                        lectureInput.placeholder = "Enter a number...";
+                    }, 2500);
+                }
+            }
+            
+            // --- Event Listeners ---
+            
+            // Card grid click delegation
+            grid.addEventListener('click', (e) => {
+                // ... existing grid listener ...
+                const target = e.target;
+
+                if (target.classList.contains('plus-btn')) {
+                    const subjectName = target.dataset.subject;
+                    handleIncrement(subjectName);
+                    return; 
+                }
+
+                if (target.classList.contains('minus-btn')) { /* <-- FIXED .contents to .contains */
+                    const subjectName = target.dataset.subject;
+                    handleDecrement(subjectName);
+                    return; 
+                }
+
+                const card = target.closest('.subject-card');
+                if (card) {
+                    const subjectName = card.dataset.subject;
+                    openModal(subjectName);
+                }
+            });
+
+            // Modal listeners
+            closeModalBtn.addEventListener('click', closeModal);
+            saveBtn.addEventListener('click', handleSave);
+            
+            lectureInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    handleSave();
+                }
+            });
+
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            // --- NEW Help Button Listeners ---
+
+            // Toggle help message on '?' button click
+            helpBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent this click from being caught by the window listener
+                if (helpMessage.style.display === 'block') {
+                    helpMessage.style.display = 'none';
+                } else {
+                    helpMessage.style.display = 'block';
+                }
+            });
+
+            // Close help message if clicking anywhere else on the page
+            window.addEventListener('click', (e) => {
+                if (helpMessage.style.display === 'block') {
+                    // Check if the click was *not* on the help button or inside the help message
+                    if (!helpBtn.contains(e.target) && !helpMessage.contains(e.target)) {
+                        helpMessage.style.display = 'none';
+                    }
+                }
+            });
+
+
+            // --- Initialization ---
+            function init() {
+                loadData();
+                renderCards();
+                updateTotals();
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>

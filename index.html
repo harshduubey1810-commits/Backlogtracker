@@ -12,24 +12,24 @@
             font-family: "Inter", sans-serif;
         }
         /* Hide the modals by default */
-        #modal, #help-message {
+        #modal, #help-message, #user-details-modal, #admin-modal {
             display: none;
         }
         /* Style for the card buttons */
         .card-btn {
             position: absolute;
-            width: 2rem; /* 32px */
-            height: 2rem; /* 32px */
-            border-radius: 9999px; /* full */
+            width: 2rem;
+            height: 2rem;
+            border-radius: 9999px;
             background-color: rgba(255, 255, 255, 0.3);
             color: white;
-            font-size: 1.25rem; /* 20px */
+            font-size: 1.25rem;
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s ease;
-            -webkit-tap-highlight-color: transparent; /* Remove tap flash on mobile */
+            -webkit-tap-highlight-color: transparent;
         }
         .card-btn:hover {
             background-color: rgba(255, 255, 255, 0.5);
@@ -37,19 +37,17 @@
         .card-btn:active {
             transform: scale(0.95);
         }
-        /* Ensure card text doesn't trigger clicks (for event delegation) */
         .card-text {
             pointer-events: none;
         }
 
-        /* NEW: Style for the help button */
-        #help-btn {
-            position: absolute; /* <-- CHANGED from fixed */
-            top: 0.5rem; /* Adjusted for new position */
-            right: 0.5rem; /* Adjusted for new position */
-            z-index: 40; /* Added z-index */
-            width: 2.5rem; /* 40px */
-            height: 2.5rem; /* 40px */
+        /* Style for the help button */
+        #help-btn, #admin-btn { /* MODIFIED: Added #admin-btn */
+            position: absolute; 
+            top: 0.5rem;
+            z-index: 40; 
+            width: 2.5rem;
+            height: 2.5rem;
             background-color: #3b82f6; /* blue-600 */
             color: white;
             border-radius: 9999px;
@@ -57,55 +55,84 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.25rem; /* 20px */
+            font-size: 1.25rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        #help-btn:hover {
+        #help-btn {
+            right: 0.5rem; 
+        }
+        /* NEW: Admin button position */
+        #admin-btn {
+            right: 3.5rem; /* 0.5rem (btn right) + 2.5rem (btn width) + 0.5rem (spacing) */
+        }
+
+        #help-btn:hover, #admin-btn:hover {
             transform: scale(1.1);
             background-color: #2563eb; /* blue-700 */
         }
 
-        /* NEW: Style for the help message box */
+        /* Style for the help message box */
         #help-message {
-            position: absolute; /* <-- CHANGED from fixed */
-            top: 3.5rem; /* 0.5rem (btn top) + 2.5rem (btn height) + 0.5rem (spacing) */
-            right: 0.5rem; /* Adjusted for new position */
+            position: absolute; 
+            top: 3.5rem;
+            right: 0.5rem;
             z-index: 50;
             background-color: white;
             padding: 1rem;
-            border-radius: 0.5rem; /* 8px */
+            border-radius: 0.5rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e5e7eb; /* gray-200 */
-            /* width: 256px; /* 16rem */ /* <-- Removed fixed width */
-            max-width: 300px; /* <-- Use max-width to prevent "cut out" text */
-            text-align: center; /* <-- Center the text as requested */
+            border: 1px solid #e5e7eb;
+            max-width: 300px; 
+            text-align: center; 
+        }
+
+        /* NEW: Style for admin modal list */
+        #admin-data-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            background-color: #f9fafb;
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-4 sm:p-8">
 
-    <!-- MOVED Help Button (now inside header) -->
-    <!-- MOVED Help Message Box (now inside header) -->
-
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
-        <!-- ADDED 'relative' class to act as positioning anchor -->
         <header class="mb-8 relative">
-            <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800">
+            <!-- User Greeting -->
+            <div id="user-greeting" class="absolute top-2 left-2 sm:top-0 sm:left-0 flex items-center hidden">
+                <span id="greeting-text" class="text-base sm:text-lg font-semibold text-gray-700"></span>
+                <button id="edit-user-details-btn" class="ml-2 text-blue-600 hover:text-blue-800 rounded-full p-1 hover:bg-blue-100 transition-colors" aria-label="Edit user details">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
+                      <path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Main Title -->
+            <h1 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 pt-12 sm:pt-0">
                 Subject Backlog Tracker
             </h1>
-            <!-- This instruction <p> tag has been removed -->
 
-            <!-- MOVED HERE -->
-            <!-- NEW Help Button -->
+            <!-- Help Button -->
             <button id="help-btn">?</button>
 
-            <!-- NEW Help Message Box -->
+            <!-- NEW: Admin Button -->
+            <button id="admin-btn" title="View Entries">
+                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                </svg>
+            </button>
+
+            <!-- Help Message Box -->
             <div id="help-message">
                 <p class="text-gray-700 text-sm font-semibold">How to use:</p>
-                <!-- Added inline-block and text-left to center the list block but keep list text left-aligned -->
                 <ul class="list-disc list-inside mt-2 text-gray-600 text-sm space-y-1 inline-block text-left">
                     <li>Click a subject card to set a specific number.</li>
                     <li>Use <span class="font-bold text-blue-600">+</span> to add one lecture.</li>
@@ -130,9 +157,8 @@
         </div>
     </div>
 
-    <!-- Modal "Screen" -->
+    <!-- Modal "Screen" (for backlog) -->
     <div id="modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4">
-        <!-- ... existing modal code ... -->
         <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm">
             <h3 id="modal-title" class="text-2xl font-bold mb-4 text-gray-800">
                 Update Backlog
@@ -164,16 +190,117 @@
         </div>
     </div>
 
-    <script>
+    <!-- User Details Modal "Screen" -->
+    <div id="user-details-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4" style="display: none;">
+        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm">
+            <h3 class="text-2xl font-bold mb-4 text-gray-800">
+                Welcome!
+            </h3>
+            <p class="text-gray-600 mb-4">
+                Please enter your details to get started.
+            </p>
+            <div class="space-y-4">
+                <div>
+                    <label for="user-name-input" class="block text-sm font-medium text-gray-700 mb-1">
+                        Name
+                    </label>
+                    <input type="text" id="user-name-input"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Enter your name...">
+                </div>
+                <div>
+                    <label for="user-class-input" class="block text-sm font-medium text-gray-700 mb-1">
+                        Class
+                    </label>
+                    <input type="text" id="user-class-input"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Enter your class (e.g., 12th A)">
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end">
+                <button id="save-user-details-btn" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Save & Start
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Admin Modal -->
+    <div id="admin-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4" style="display: none;">
+        <div class="bg-white rounded-lg shadow-2xl p-6 w-full max-w-md">
+            <h3 class="text-2xl font-bold mb-4 text-gray-800">
+                Registered Users
+            </h3>
+            <div id="admin-data-list" class="mb-4">
+                <p class="text-gray-500 text-center">Loading entries...</p>
+                <!-- Data will be populated here -->
+            </div>
+            <div class="flex justify-between">
+                <button id="close-admin-modal-btn" 
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                    Close
+                </button>
+                <button id="download-csv-btn" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    Download as CSV
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- NEW: Firebase Imports -->
+    <script type="module">
+        // Firebase Core
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // Firebase Auth
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Firebase Firestore
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc,
+            addDoc, 
+            collection, 
+            getDocs,
+            Timestamp
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Firebase Config (DO NOT EDIT) ---
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        
+        // --- Firebase App Variables ---
+        let app, auth, db, userId;
+        let allUserEntries = []; // Store data for CSV download
+
+        // --- Initialize Firebase ---
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) {
+            console.error("Error initializing Firebase:", e);
+        }
+
+        // --- Main App Code ---
         document.addEventListener('DOMContentLoaded', () => {
             const subjects = [
-                // ... existing subjects array ...
                 { name: 'Physics', color: 'bg-blue-500' },
                 { name: 'Chemistry', color: 'bg-green-500' },
                 { name: 'Botany', color: 'bg-yellow-500' },
                 { name: 'Zoology', color: 'bg-red-500' }
             ];
 
+            // Backlog elements
             const grid = document.getElementById('subject-grid');
             const totalBacklogEl = document.getElementById('total-backlog');
             const modal = document.getElementById('modal');
@@ -183,17 +310,59 @@
             const closeModalBtn = document.getElementById('close-modal-btn');
             const saveBtn = document.getElementById('save-btn');
 
-            // NEW: Help elements
+            // Help elements
             const helpBtn = document.getElementById('help-btn');
             const helpMessage = document.getElementById('help-message');
 
-            let backlogData = {};
+            // User details elements
+            const userDetailsModal = document.getElementById('user-details-modal');
+            const userNameInput = document.getElementById('user-name-input');
+            const userClassInput = document.getElementById('user-class-input');
+            const saveUserDetailsBtn = document.getElementById('save-user-details-btn');
+            const userGreeting = document.getElementById('user-greeting');
+            const greetingText = document.getElementById('greeting-text');
+            const editUserDetailsBtn = document.getElementById('edit-user-details-btn');
 
+            // Admin elements
+            const adminBtn = document.getElementById('admin-btn');
+            const adminModal = document.getElementById('admin-modal');
+            const adminDataList = document.getElementById('admin-data-list');
+            const closeAdminModalBtn = document.getElementById('close-admin-modal-btn');
+            const downloadCsvBtn = document.getElementById('download-csv-btn');
+
+            let backlogData = {};
+            let userData = {}; // Local data for greeting
+
+            // --- Authentication ---
+            async function setupAuth() {
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        // Auth ready, just log it.
+                        console.log("Firebase user signed in:", userId);
+                    } else {
+                        // No user, sign in
+                        signIn();
+                    }
+                });
+            }
+
+            async function signIn() {
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (e) {
+                    console.error("Error signing in:", e);
+                }
+            }
+            
             // --- Core Functions ---
 
-            // Load data from localStorage
-            function loadData() {
-                // ... existing loadData function ...
+            // Load backlog data from localStorage
+            function loadBacklogData() {
                 const savedData = localStorage.getItem('backlogData');
                 if (savedData) {
                     backlogData = JSON.parse(savedData);
@@ -204,82 +373,161 @@
                 }
             }
 
-            // Save data to localStorage
-            function saveData() {
-                // ... existing saveData function ...
+            // Save backlog data to localStorage
+            function saveBacklogData() {
                 localStorage.setItem('backlogData', JSON.stringify(backlogData));
             }
 
-            // Update the total backlog display
+            // --- User Data Functions ---
+
+            // Load user data from localStorage (for greeting)
+            function loadUserData() {
+                const savedUserData = localStorage.getItem('userData');
+                if (savedUserData) {
+                    userData = JSON.parse(savedUserData);
+                    updateGreeting(userData.name);
+                } else {
+                    // No user data, force them to enter it
+                    openUserDetailsModal();
+                }
+            }
+
+            // Save user data to localStorage
+            function saveUserDataToLocal(name, className) {
+                userData = { name: name, class: className };
+                localStorage.setItem('userData', JSON.stringify(userData));
+            }
+
+            // NEW: Save user data to Firestore
+            async function saveUserDataToFirestore(name, className) {
+                if (!db || !userId) {
+                    console.error("Firestore not ready");
+                    return;
+                }
+                try {
+                    const docData = {
+                        name: name,
+                        className: className,
+                        createdAt: Timestamp.now(),
+                        userId: userId // Store which user added this
+                    };
+                    
+                    // Use a public collection
+                    const collectionPath = `artifacts/${appId}/public/data/userEntries`;
+                    
+                    // Add a new document with a random ID
+                    const docRef = await addDoc(collection(db, collectionPath), docData);
+                    console.log("User data saved to Firestore with ID: ", docRef.id);
+
+                } catch (e) {
+                    console.error("Error adding document: ", e);
+                }
+            }
+
+            // Update the greeting message
+            function updateGreeting(name) {
+                if(name) {
+                    greetingText.textContent = `KEEP GOING ${name}!`;
+                    userGreeting.classList.remove('hidden');
+                } else {
+                    userGreeting.classList.add('hidden');
+                }
+            }
+
+            // Open the user details modal
+            function openUserDetailsModal() {
+                if (userData.name) {
+                    userNameInput.value = userData.name;
+                    userClassInput.value = userData.class || '';
+                } else {
+                    userNameInput.value = '';
+                    userClassInput.value = '';
+                }
+                userDetailsModal.style.display = 'flex';
+                userNameInput.focus();
+            }
+
+            // Close the user details modal
+            function closeUserDetailsModal() {
+                userDetailsModal.style.display = 'none';
+            }
+
+            // Handle saving user details
+            async function handleSaveUserDetails() {
+                const name = userNameInput.value.trim();
+                const className = userClassInput.value.trim();
+
+                if (!name) {
+                    userNameInput.classList.add('border-red-500', 'ring-red-500');
+                    userNameInput.placeholder = "Name is required!";
+                    setTimeout(() => {
+                        userNameInput.classList.remove('border-red-500', 'ring-red-500');
+                        userNameInput.placeholder = "Enter your name...";
+                    }, 2500);
+                } else {
+                    // Save to localStorage for quick greeting
+                    saveUserDataToLocal(name, className);
+                    updateGreeting(name);
+                    
+                    // NEW: Save to Firestore
+                    await saveUserDataToFirestore(name, className);
+                    
+                    closeUserDetailsModal();
+                }
+            }
+
+            // --- Backlog & Card Functions ---
             function updateTotals() {
-                // ... existing updateTotals function ...
                 const total = Object.values(backlogData).reduce((sum, val) => sum + val, 0);
                 totalBacklogEl.textContent = total;
             }
 
-            // Update the count on a single card (more efficient)
             function updateCardCount(subjectName) {
-                // ... existing updateCardCount function ...
                 const countEl = document.getElementById(`count-${subjectName}`);
                 if (countEl) {
                     countEl.textContent = backlogData[subjectName] || 0;
                 }
             }
 
-            // Re-draw all the subject cards
             function renderCards() {
-                // ... existing renderCards function ...
-                grid.innerHTML = ''; // Clear existing cards
+                grid.innerHTML = '';
                 subjects.forEach(subject => {
                     const count = backlogData[subject.name] || 0;
                     const card = document.createElement('div');
-                    // Add 'subject-card' class back so it can be clicked
                     card.className = `subject-card relative ${subject.color} text-white p-5 rounded-xl shadow-lg cursor-pointer`;
                     card.dataset.subject = subject.name; 
 
                     card.innerHTML = `
-                        <!-- Main Content -->
                         <h2 class="text-2xl font-bold card-text">${subject.name}</h2>
                         <p class="text-5xl font-extrabold mt-4 card-text" id="count-${subject.name}">${count}</p>
                         <p class="mt-1 text-sm opacity-90 card-text">lectures pending</p>
-                        
-                        <!-- Buttons -->
-                        <button class="card-btn plus-btn" style="top: 0.5rem; right: 0.5rem;" data-subject="${subject.name}">
-                            +
-                        </button>
-                        <button class="card-btn minus-btn" style="bottom: 0.5rem; right: 0.5rem;" data-subject="${subject.name}">
-                            -
-                        </button>
+                        <button class="card-btn plus-btn" style="top: 0.5rem; right: 0.5rem;" data-subject="${subject.name}">+</button>
+                        <button class="card-btn minus-btn" style="bottom: 0.5rem; right: 0.5rem;" data-subject="${subject.name}">-</button>
                     `;
                     grid.appendChild(card);
                 });
             }
             
             // --- Card Button Handlers ---
-            
             function handleIncrement(subjectName) {
-                // ... existing handleIncrement function ...
                 backlogData[subjectName] = (backlogData[subjectName] || 0) + 1;
-                saveData();
+                saveBacklogData();
                 updateCardCount(subjectName);
                 updateTotals();
             }
             
             function handleDecrement(subjectName) {
-                // ... existing handleDecrement function ...
                 let currentCount = backlogData[subjectName] || 0;
                 if (currentCount > 0) {
                     backlogData[subjectName] = currentCount - 1;
-                    saveData();
+                    saveBacklogData();
                     updateCardCount(subjectName);
                     updateTotals();
                 }
             }
 
-            // --- Modal Functions ---
-
+            // --- Modal Functions (for backlog) ---
             function openModal(subjectName) {
-                // ... existing openModal function ...
                 modalTitle.textContent = `Update ${subjectName} Backlog`;
                 lectureInput.value = backlogData[subjectName] || 0;
                 currentSubjectInput.value = subjectName;
@@ -288,26 +536,23 @@
             }
 
             function closeModal() {
-                // ... existing closeModal function ...
                 modal.style.display = 'none';
             }
 
             function handleSave() {
-                // ... existing handleSave function ...
                 const subjectName = currentSubjectInput.value;
                 const newCount = parseInt(lectureInput.value, 10);
 
                 if (!isNaN(newCount) && newCount >= 0) {
                     backlogData[subjectName] = newCount;
-                    saveData();
+                    saveBacklogData();
                     updateCardCount(subjectName); 
                     updateTotals();
                     closeModal();
                 } else {
                     lectureInput.classList.add('border-red-500', 'ring-red-500');
-                    lectureInput.placeholder = "Please enter a valid number (e.g., 0, 5, 10)";
+                    lectureInput.placeholder = "Please enter a valid number";
                     lectureInput.value = ''; 
-                    
                     setTimeout(() => {
                         lectureInput.classList.remove('border-red-500', 'ring-red-500');
                         lectureInput.placeholder = "Enter a number...";
@@ -315,81 +560,163 @@
                 }
             }
             
-            // --- Event Listeners ---
+            // --- NEW Admin Functions ---
             
-            // Card grid click delegation
-            grid.addEventListener('click', (e) => {
-                // ... existing grid listener ...
-                const target = e.target;
-
-                if (target.classList.contains('plus-btn')) {
-                    const subjectName = target.dataset.subject;
-                    handleIncrement(subjectName);
-                    return; 
+            async function openAdminModal() {
+                adminModal.style.display = 'flex';
+                adminDataList.innerHTML = '<p class="text-gray-500 text-center">Loading entries...</p>';
+                
+                if (!db) {
+                    adminDataList.innerHTML = '<p class="text-red-500 text-center">Error: Database not connected.</p>';
+                    return;
                 }
-
-                if (target.classList.contains('minus-btn')) { /* <-- FIXED .contents to .contains */
-                    const subjectName = target.dataset.subject;
-                    handleDecrement(subjectName);
-                    return; 
-                }
-
-                const card = target.closest('.subject-card');
-                if (card) {
-                    const subjectName = card.dataset.subject;
-                    openModal(subjectName);
-                }
-            });
-
-            // Modal listeners
-            closeModalBtn.addEventListener('click', closeModal);
-            saveBtn.addEventListener('click', handleSave);
-            
-            lectureInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    handleSave();
-                }
-            });
-
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    closeModal();
-                }
-            });
-
-            // --- NEW Help Button Listeners ---
-
-            // Toggle help message on '?' button click
-            helpBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent this click from being caught by the window listener
-                if (helpMessage.style.display === 'block') {
-                    helpMessage.style.display = 'none';
-                } else {
-                    helpMessage.style.display = 'block';
-                }
-            });
-
-            // Close help message if clicking anywhere else on the page
-            window.addEventListener('click', (e) => {
-                if (helpMessage.style.display === 'block') {
-                    // Check if the click was *not* on the help button or inside the help message
-                    if (!helpBtn.contains(e.target) && !helpMessage.contains(e.target)) {
-                        helpMessage.style.display = 'none';
+                
+                try {
+                    const collectionPath = `artifacts/${appId}/public/data/userEntries`;
+                    const querySnapshot = await getDocs(collection(db, collectionPath));
+                    
+                    allUserEntries = []; // Clear previous data
+                    adminDataList.innerHTML = ''; // Clear loading
+                    
+                    if (querySnapshot.empty) {
+                        adminDataList.innerHTML = '<p class="text-gray-500 text-center">No entries yet.</p>';
+                        return;
                     }
+
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        allUserEntries.push(data); // Save for CSV
+                        
+                        const entryEl = document.createElement('div');
+                        entryEl.className = "p-2 border-b border-gray-200";
+                        entryEl.innerHTML = `
+                            <p class="font-semibold text-gray-800">${data.name || 'No Name'}</p>
+                            <p class="text-sm text-gray-600">Class: ${data.className || 'N/A'}</p>
+                        `;
+                        adminDataList.appendChild(entryEl);
+                    });
+                } catch (e) {
+                    console.error("Error fetching user data:", e);
+                    adminDataList.innerHTML = `<p class="text-red-500 text-center">Error: ${e.message}</p>`;
                 }
-            });
+            }
+            
+            function closeAdminModal() {
+                adminModal.style.display = 'none';
+            }
+            
+            function downloadCSV() {
+                if (allUserEntries.length === 0) {
+                    return; // No data to download
+                }
 
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += "Name,Class,Timestamp\n"; // CSV header
 
-            // --- Initialization ---
-            function init() {
-                loadData();
-                renderCards();
-                updateTotals();
+                allUserEntries.forEach(entry => {
+                    const name = `"${entry.name.replace(/"/g, '""')}"`;
+                    const className = `"${entry.className.replace(/"/g, '""')}"`;
+                    const timestamp = entry.createdAt ? entry.createdAt.toDate().toISOString() : 'N/A';
+                    csvContent += `${name},${className},${timestamp}\n`;
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "user_entries.csv");
+                document.body.appendChild(link); // Required for Firefox
+
+                link.click();
+                document.body.removeChild(link);
             }
 
-            init();
+            // --- Event Listeners ---
+            
+            function setupEventListeners() {
+                // Card grid click
+                grid.addEventListener('click', (e) => {
+                    const target = e.target;
+                    if (target.classList.contains('plus-btn')) {
+                        handleIncrement(target.dataset.subject);
+                        return; 
+                    }
+                    if (target.classList.contains('minus-btn')) { 
+                        handleDecrement(target.dataset.subject);
+                        return; 
+                    }
+                    const card = target.closest('.subject-card');
+                    if (card) {
+                        openModal(card.dataset.subject);
+                    }
+                });
+
+                // Backlog Modal
+                closeModalBtn.addEventListener('click', closeModal);
+                saveBtn.addEventListener('click', handleSave);
+                lectureInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') handleSave();
+                });
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal();
+                });
+
+                // Help Button
+                helpBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); 
+                    helpMessage.style.display = (helpMessage.style.display === 'block') ? 'none' : 'block';
+                });
+                window.addEventListener('click', (e) => {
+                    if (helpMessage.style.display === 'block') {
+                        if (!helpBtn.contains(e.target) && !helpMessage.contains(e.target)) {
+                            helpMessage.style.display = 'none';
+                        }
+                    }
+                });
+
+                // User Details Modal
+                saveUserDetailsBtn.addEventListener('click', handleSaveUserDetails);
+                editUserDetailsBtn.addEventListener('click', openUserDetailsModal);
+                userDetailsModal.addEventListener('click', (e) => {
+                    if (e.target === userDetailsModal && userData.name) {
+                        closeUserDetailsModal();
+                    }
+                });
+                userNameInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') handleSaveUserDetails();
+                });
+                userClassInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') handleSaveUserDetails();
+                });
+
+                // Admin Modal
+                adminBtn.addEventListener('click', openAdminModal);
+                closeAdminModalBtn.addEventListener('click', closeAdminModal);
+                downloadCsvBtn.addEventListener('click', downloadCSV);
+                adminModal.addEventListener('click', (e) => {
+                    if (e.target === adminModal) closeAdminModal();
+                });
+            }
+
+            // --- Initialization ---
+            function initializeAppLogic() {
+                loadBacklogData(); // Load backlog from localStorage
+                loadUserData(); // Load user from localStorage (and show modal if needed)
+                renderCards();
+                updateTotals();
+                setupEventListeners(); // Setup clicks
+            }
+
+            // Start the auth process (tries to connect in background)
+            if (db && auth) {
+                setupAuth();
+            } else {
+                console.error("Firebase failed to initialize. Admin features will not work.");
+            }
+
+            // NEW: Call the main app logic immediately!
+            // This makes the app work even if Firebase fails.
+            initializeAppLogic();
         });
     </script>
 </body>
-
 </html>

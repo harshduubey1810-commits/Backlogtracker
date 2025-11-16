@@ -61,13 +61,15 @@
     .edit-btn:hover, .plus-btn:hover, .minus-btn:hover {
       background: rgba(255, 255, 255, 0.5);
     }
+    
+    /* === FIXED: Swapped button positions back to original === */
     .edit-btn {
       top: 8px;
-      right: 48px;
+      right: 48px; /* Original position */
     }
     .plus-btn {
       top: 8px;
-      right: 8px;
+      right: 8px; /* Original position */
       font-size: 20px;
       font-weight: bold;
     }
@@ -77,6 +79,7 @@
       font-size: 24px;
       font-weight: bold;
     }
+    
     .modal-overlay {
       position: fixed;
       top: 0;
@@ -169,6 +172,64 @@
     input:checked + .slider:before {
       transform: translateX(26px);
     }
+    
+    #chapter-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+    }
+    .chapter-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .chapter-item:last-child {
+      border-bottom: none;
+    }
+    .chapter-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin-right: 0.75rem;
+    }
+    .chapter-item span {
+      flex-grow: 1;
+      font-size: 1.1rem;
+    }
+    .chapter-item button {
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+    
+    .mode-btn {
+      padding: 0.5rem 1.25rem;
+      border-radius: 9999px; /* full pill shape */
+      font-weight: 600;
+      transition: all 0.2s;
+      border: 2px solid #3b82f6; /* blue border */
+    }
+    .mode-btn-active {
+      background-color: #3b82f6; /* solid blue */
+      color: white;
+    }
+    .mode-btn:not(.mode-btn-active) {
+      background-color: transparent;
+      color: #3b82f6; /* blue text */
+    }
+    .mode-btn:not(.mode-btn-active):hover {
+      background-color: #dbeafe; /* light blue bg on hover */
+    }
   </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
@@ -190,8 +251,16 @@
       </h1>
     </div>
 
+    <div class="mb-4">
+      <h3 class="text-lg font-semibold text-gray-700 text-center mb-2">Backlog Type</h3>
+      <div class="flex justify-center gap-2">
+        <button id="btn-mode-lectures" class="mode-btn">Lectures</button>
+        <button id="btn-mode-notes" class="mode-btn">Notes/Chapter</button>
+      </div>
+    </div>
+
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-      <h2 class="text-xl font-semibold text-gray-700 mb-2">Total Pending Lectures</h2>
+      <h2 id="total-pending-label" class="text-xl font-semibold text-gray-700 mb-2">Total Pending Lectures</h2>
       <div id="total-backlog" class="text-5xl font-extrabold text-blue-600">0</div>
     </div>
 
@@ -208,6 +277,22 @@
         <button id="close-modal-btn" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold">Cancel</button>
         <button id="save-modal-btn" class="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold">Save</button>
       </div>
+    </div>
+  </div>
+
+  <div id="chapter-modal" class="modal-overlay" data-subject="">
+    <div class="modal-content">
+      <h2 id="chapter-modal-title" class="text-2xl font-bold mb-4">Chapters</h2>
+      
+      <div id="chapter-list" class="mb-4">
+        </div>
+      
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="chapter-name-input" placeholder="New chapter name" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg">
+        <button id="add-chapter-btn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-2xl">+</button>
+      </div>
+      
+      <button id="close-chapter-modal-btn" class="w-full px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold">Close</button>
     </div>
   </div>
 
@@ -263,39 +348,55 @@
   </div>
 
   <div id="settings-modal" class="modal-overlay">
-    <div class="modal-content">
-      <h2 class="text-2xl font-bold mb-6">Settings</h2>
+    <div class="modal-content flex flex-col h-full max-h-[90vh]">
+      
+      <div class="flex-grow">
+        <h2 class="text-2xl font-bold mb-6">Settings</h2>
 
-      <div class="flex items-center justify-between mb-6">
-        <span class="text-lg font-semibold text-gray-700">Enable Celebrations</span>
-        <label class="switch">
-          <input type="checkbox" id="animation-toggle">
-          <span class="slider"></span>
-        </label>
-      </div>
+        <div class="flex items-center justify-between mb-6">
+          <span class="text-lg font-semibold text-gray-700">Enable Celebrations</span>
+          <label class="switch">
+            <input type="checkbox" id="animation-toggle">
+            <span class="slider"></span>
+          </label>
+        </div>
 
-      <div class="mb-4 border-t pt-4">
-        <button id="change-name-btn" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-left">
-          Change Name
-        </button>
-      </div>
+        <div class="border-t pt-4 mb-4">
+          <button id="change-name-btn" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-left">
+            Change Name
+          </button>
+        </div>
 
-      <div class="border-t pt-4">
-        <button id="toggle-help-btn" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-left mb-2">
-          Help
-        </button>
-        <div id="help-message" class="hidden bg-gray-100 p-4 rounded-lg">
-          <h3 class="font-bold mb-2">How to use:</h3>
-          <ul class="text-sm space-y-1">
-            <li>• Click subject to set number.</li>
-            <li>• Use + / - buttons.</li>
-            <li>• Click pencil to rename/remove.</li>
-            <li>• Click 📸 to save as image.</li>
-          </ul>
+        <div class="border-t pt-4">
+          <button id="toggle-help-btn" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-left mb-2">
+            Help
+          </button>
+          <div id="help-message" class="hidden bg-gray-100 p-4 rounded-lg">
+            <h3 class="font-bold mb-2">How to use:</h3>
+            <ul class="text-sm space-y-1">
+              <li>• Click subject to set number.</li>
+              <li>• Use + / - buttons.</li>
+              <li>• Click pencil to rename/remove.</li>
+              <li>• Click 📸 to save as image.</li>
+            </ul>
+          </div>
         </div>
       </div>
-      
-      <button id="close-settings-modal-btn" class="w-full mt-6 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold">Close</S>
+
+      <div class="border-t pt-4 mt-6">
+        <div class="flex justify-between items-center">
+          
+          <a href="https://t.me/neetnotes11thclass" target="_blank" rel="noopener noreferrer" 
+             title="Join Telegram Channel" 
+             class="text-gray-400 hover:text-blue-500 transition-colors">
+            <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9.78 18.65l.28-4.23l7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3L3.64 11.9c-.88-.28-.89-.86.2-1.3l15.97-6.16c.73-.28 1.39.2 1.05 1.2l-3.0 14.23c-.26 1.14-1.02 1.4-1.9 0.9l-4.9-3.6l-2.4 2.3c-.27.27-.5.4-.88.4z"></path>
+            </svg>
+          </a>
+          
+          <button id="close-settings-modal-btn" class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold">Close</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -309,7 +410,63 @@
     let backlogData = {};
     let userData = null;
     let settings = {
-      animations: true
+      animations: true,
+      mode: 'lectures'
+    };
+    let notesData = {}; 
+
+    const preloadedNotes = {
+      'Physics': [
+        { name: 'Units and Measurements', completed: false },
+        { name: 'Motion in a Straight Line', completed: false },
+        { name: 'Motion in a Plane', completed: false },
+        { name: 'Laws of Motion', completed: false },
+        { name: 'Work, Energy, and Power', completed: false },
+        { name: 'System of Particles and Rotational Motion', completed: false },
+        { name: 'Gravitation', completed: false },
+        { name: 'Mechanical Properties of Solids', completed: false },
+        { name: 'Mechanical Properties of Fluids', completed: false },
+        { name: 'Thermal Properties of Matter', completed: false },
+        { name: 'Thermodynamics', completed: false },
+        { name: 'Kinetic Theory', completed: false },
+        { name: 'Oscillations', completed: false },
+        { name: 'Waves', completed: false }
+      ],
+      'Chemistry': [
+        { name: 'Some Basic Concepts of Chemistry', completed: false },
+        { name: 'Structure of Atom', completed: false },
+        { name: 'Classification of Elements and Periodicity', completed: false },
+        { name: 'Chemical Bonding and Molecular Structure', completed: false },
+        { name: 'Chemical Thermodynamics', completed: false },
+        { name: 'Equilibrium', completed: false },
+        { name: 'Redox Reactions', completed: false },
+        { name: 'Organic Chemistry: Basic Principles', completed: false },
+        { name: 'Hydrocarbons', completed: false },
+        { name: 'p-Block Elements (Groups 13 & 14)', completed: false }
+      ],
+      'Botany': [
+        { name: 'Cell: The Unit of Life', completed: false },
+        { name: 'Cell Cycle and Cell Division', completed: false },
+        { name: 'The Living World', completed: false },
+        { name: 'Biological Classification', completed: false },
+        { name: 'Plant Kingdom', completed: false },
+        { name: 'Morphology of Flowering Plants', completed: false },
+        { name: 'Anatomy of Flowering Plants', completed: false },
+        { name: 'Photosynthesis in Higher Plants', completed: false },
+        { name: 'Respiration in Plants', completed: false },
+        { name: 'Plant Growth and Development', completed: false }
+      ],
+      'Zoology': [
+        { name: 'Animal Kingdom', completed: false },
+        { name: 'Structural Organisation in Animals', completed: false },
+        { name: 'Breathing and Exchange of Gases', completed: false },
+        { name: 'Body Fluids and Circulation', completed: false },
+        { name: 'Excretory Products and their Elimination', completed: false },
+        { name: 'Locomotion and Movement', completed: false },
+        { name: 'Neural Control and Coordination', completed: false },
+        { name: 'Chemical Coordination and Integration', completed: false },
+        { name: 'Biomolecules', completed: false }
+      ]
     };
 
     const availableColors = [
@@ -330,6 +487,7 @@
     document.addEventListener('DOMContentLoaded', () => {
       loadData();
       loadSettings(); 
+      loadNotesData(); 
       attachEventListeners();
       render();
     });
@@ -374,10 +532,32 @@
       }
     }
 
+    function loadNotesData() {
+      const savedNotes = localStorage.getItem('notesData');
+      const isFirstLoad = !savedNotes;
+
+      if (savedNotes) {
+        notesData = JSON.parse(savedNotes);
+      } else {
+        notesData = preloadedNotes;
+      }
+      
+      subjects.forEach(subject => {
+        if (!(subject.name in notesData)) {
+          notesData[subject.name] = preloadedNotes[subject.name] || [];
+        }
+      });
+      saveNotesData();
+    }
+
+    function saveNotesData() {
+      localStorage.setItem('notesData', JSON.stringify(notesData));
+    }
+
     function loadSettings() {
       const savedSettings = localStorage.getItem('appSettings');
       if (savedSettings) {
-        settings = JSON.parse(savedSettings);
+        settings = Object.assign({ animations: true, mode: 'lectures' }, JSON.parse(savedSettings));
       }
       document.getElementById('animation-toggle').checked = settings.animations;
     }
@@ -405,26 +585,59 @@
       const grid = document.getElementById('subject-grid');
       grid.innerHTML = '';
 
+      const btnLectures = document.getElementById('btn-mode-lectures');
+      const btnNotes = document.getElementById('btn-mode-notes');
+      
+      if (settings.mode === 'lectures') {
+        btnLectures.classList.add('mode-btn-active');
+        btnNotes.classList.remove('mode-btn-active');
+        document.getElementById('total-pending-label').textContent = 'Total Pending Lectures';
+      } else {
+        btnNotes.classList.add('mode-btn-active');
+        btnLectures.classList.remove('mode-btn-active');
+        document.getElementById('total-pending-label').textContent = 'Total Chapters Complete';
+      }
+
       // Render subject cards
       subjects.forEach((subject, index) => {
-        const count = backlogData[subject.name] || 0;
         const card = document.createElement('div');
         card.className = `subject-card ${subject.color} text-white p-6 rounded-lg shadow-md`;
         card.dataset.index = index;
         
-        card.innerHTML = `
-          <div class="minus-btn text-white">−</div>
-          <div class="edit-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
-          </div>
-          <div class="plus-btn text-white">+</div>
-          <h2 class="text-xl sm:text-2xl font-bold mb-2">${subject.name}</h2>
-          <div class="text-4xl sm:text-5xl font-extrabold mb-1">${count}</div>
-          <div class="text-sm opacity-90">lectures pending</div>
-        `;
-        
+        if (settings.mode === 'lectures') {
+          // --- LECTURE MODE RENDER ---
+          const count = backlogData[subject.name] || 0;
+          card.innerHTML = `
+            <div class="minus-btn text-white">−</div>
+            <div class="plus-btn text-white">+</div>
+            <div class="edit-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold mb-2">${subject.name}</h2>
+            <div class="text-4xl sm:text-5xl font-extrabold mb-1">${count}</div>
+            <div class="text-sm opacity-90">lectures pending</div>
+          `;
+        } else {
+          // --- NOTES MODE RENDER ---
+          const chapters = notesData[subject.name] || [];
+          const completedCount = chapters.filter(c => c.completed).length;
+          const totalCount = chapters.length;
+          // === FIXED: Changed class from "edit-btn" to "plus-btn" to fix position ===
+          card.innerHTML = `
+            <div class="plus-btn"> 
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold mb-2">${subject.name} Notes</h2>
+            <div class="text-4xl sm:text-5xl font-extrabold mb-1">
+              ${completedCount}<span class="text-3xl opacity-80">/${totalCount}</span>
+            </div>
+            <div class="text-sm opacity-90">chapters complete</div>
+          `;
+        }
         grid.appendChild(card);
       });
 
@@ -443,11 +656,29 @@
     }
 
     function updateTotalBacklog() {
-      const total = Object.values(backlogData).reduce((sum, val) => sum + val, 0);
       const totalEl = document.getElementById('total-backlog');
-      totalEl.textContent = total;
+      let total = 0; // This will now store PENDING count for styling
       
-      if (total === 0) {
+      if (settings.mode === 'lectures') {
+        total = Object.values(backlogData).reduce((sum, val) => sum + val, 0);
+        totalEl.innerHTML = total; // Display the pending number
+      } else {
+        let totalCompleted = 0;
+        let totalChapters = 0;
+        Object.values(notesData).forEach(chapters => {
+          totalChapters += chapters.length;
+          totalCompleted += chapters.filter(c => c.completed).length;
+        });
+        total = totalChapters - totalCompleted; // Pending count
+        
+        // Display as X/Y
+        totalEl.innerHTML = `
+          ${totalCompleted}<span class="text-3xl opacity-80">/${totalChapters}</span>
+        `;
+      }
+      
+      // Styling is based on PENDING count (total)
+      if (total === 0 && (settings.mode === 'lectures' || totalChapters > 0)) {
         totalEl.className = 'text-5xl font-extrabold text-green-500';
       } else {
         totalEl.className = 'text-5xl font-extrabold text-blue-600';
@@ -464,21 +695,50 @@
           openSubjectModal();
           return;
         }
-        
         if (!card) return;
         
         const index = parseInt(card.dataset.index);
         const subject = subjects[index];
         
-        if (e.target.closest('.edit-btn')) {
+        // === FIXED: In notes mode, the button now has class 'plus-btn' ===
+        if (settings.mode === 'notes' && e.target.closest('.plus-btn')) {
           openSubjectModal(index);
-        } else if (e.target.closest('.plus-btn')) {
-          changeBacklog(subject.name, 1);
-        } else if (e.target.closest('.minus-btn')) {
-          changeBacklog(subject.name, -1);
-        } else {
-          openUpdateModal(subject.name);
+          return;
         }
+        // === FIXED: In lecture mode, the button has class 'edit-btn' ===
+        if (settings.mode === 'lectures' && e.target.closest('.edit-btn')) {
+          openSubjectModal(index);
+          return; 
+        }
+        
+        if (settings.mode === 'lectures') {
+          // --- LECTURE MODE CLICKS ---
+          if (e.target.closest('.plus-btn')) {
+            changeBacklog(subject.name, 1);
+          } else if (e.target.closest('.minus-btn')) {
+            changeBacklog(subject.name, -1);
+          } else {
+            openUpdateModal(subject.name);
+          }
+        } else {
+          // --- NOTES MODE CLICKS ---
+          openChapterModal(subject.name);
+        }
+      });
+
+      // Mode Toggle Listeners
+      document.getElementById('btn-mode-lectures').addEventListener('click', () => {
+        if (settings.mode === 'lectures') return; 
+        settings.mode = 'lectures';
+        saveSettings();
+        render();
+      });
+      
+      document.getElementById('btn-mode-notes').addEventListener('click', () => {
+        if (settings.mode === 'notes') return;
+        settings.mode = 'notes';
+        saveSettings();
+        render();
       });
 
       // Settings button
@@ -490,17 +750,14 @@
       document.getElementById('close-settings-modal-btn').addEventListener('click', () => {
         document.getElementById('settings-modal').style.display = 'none';
       });
-
       document.getElementById('animation-toggle').addEventListener('change', (e) => {
         settings.animations = e.target.checked;
         saveSettings();
       });
-
       document.getElementById('toggle-help-btn').addEventListener('click', () => {
         const helpMsg = document.getElementById('help-message');
         helpMsg.style.display = helpMsg.style.display === 'none' ? 'block' : 'none';
       });
-
       document.getElementById('change-name-btn').addEventListener('click', () => {
         if (userData) {
           document.getElementById('user-name-input').value = userData.name || '';
@@ -513,18 +770,15 @@
       document.getElementById('open-download-modal-btn').addEventListener('click', () => {
         document.getElementById('download-modal').style.display = 'flex';
       });
-
       document.getElementById('close-download-modal-btn').addEventListener('click', () => {
         document.getElementById('download-modal').style.display = 'none';
       });
-
       document.getElementById('download-image-btn').addEventListener('click', downloadImage);
 
       // Update backlog modal
       document.getElementById('close-modal-btn').addEventListener('click', () => {
         document.getElementById('modal').style.display = 'none';
       });
-
       document.getElementById('save-modal-btn').addEventListener('click', saveUpdateModal);
 
       // User details modal
@@ -534,9 +788,7 @@
       document.getElementById('close-subject-modal-btn').addEventListener('click', () => {
         document.getElementById('subject-modal').style.display = 'none';
       });
-
       document.getElementById('save-subject-btn').addEventListener('click', saveSubjectModal);
-      
       document.getElementById('remove-subject-btn').addEventListener('click', () => {
         const index = document.getElementById('subject-edit-index').value;
         const subject = subjects[index];
@@ -549,8 +801,43 @@
       document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
         document.getElementById('confirm-modal').style.display = 'none';
       });
-
       document.getElementById('confirm-remove-btn').addEventListener('click', confirmRemoveSubject);
+      
+      // Chapter Modal Listeners
+      document.getElementById('close-chapter-modal-btn').addEventListener('click', () => {
+        document.getElementById('chapter-modal').style.display = 'none';
+        render(); 
+      });
+      document.getElementById('add-chapter-btn').addEventListener('click', () => {
+        const subjectName = document.getElementById('chapter-modal').dataset.subject;
+        const input = document.getElementById('chapter-name-input');
+        const newName = input.value.trim();
+        
+        if (newName) {
+          notesData[subjectName].push({ name: newName, completed: false });
+          saveNotesData();
+          renderChapterList(subjectName);
+          input.value = '';
+        }
+      });
+      document.getElementById('chapter-list').addEventListener('click', (e) => {
+        const subjectName = document.getElementById('chapter-modal').dataset.subject;
+        const index = e.target.dataset.index;
+        
+        if (index === undefined) return;
+        
+        if (e.target.type === 'checkbox') {
+          notesData[subjectName][index].completed = e.target.checked;
+          saveNotesData();
+          renderChapterList(subjectName);
+          updateTotalBacklog(); 
+        } else if (e.target.tagName === 'BUTTON') {
+          notesData[subjectName].splice(index, 1);
+          saveNotesData();
+          renderChapterList(subjectName);
+          updateTotalBacklog();
+        }
+      });
     }
 
     function changeBacklog(subjectName, delta) {
@@ -629,7 +916,6 @@
         return;
       }
       
-      // Check for duplicates
       const isDuplicate = subjects.some((s, i) => {
         if (editIndex !== '' && i === parseInt(editIndex)) return false;
         return s.name.toLowerCase() === newName.toLowerCase();
@@ -646,20 +932,23 @@
         const oldName = subjects[index].name;
         subjects[index].name = newName;
         
-        // Move backlog data
         if (oldName !== newName) {
           backlogData[newName] = backlogData[oldName] || 0;
           delete backlogData[oldName];
+          notesData[newName] = notesData[oldName] || [];
+          delete notesData[oldName];
         }
       } else {
         // Add mode
         const randomColor = availableColors[Math.floor(Math.random() * availableColors.length)];
         subjects.push({ name: newName, color: randomColor });
         backlogData[newName] = 0;
+        notesData[newName] = [];
       }
       
       saveSubjects();
       saveBacklogData();
+      saveNotesData(); 
       document.getElementById('subject-modal').style.display = 'none';
       render();
     }
@@ -669,28 +958,60 @@
       const subject = subjects[index];
       
       delete backlogData[subject.name];
+      delete notesData[subject.name]; 
       subjects.splice(index, 1);
       
       saveSubjects();
       saveBacklogData();
+      saveNotesData(); 
       document.getElementById('confirm-modal').style.display = 'none';
       document.getElementById('subject-modal').style.display = 'none';
       render();
     }
 
+    function renderChapterList(subjectName) {
+      const listEl = document.getElementById('chapter-list');
+      listEl.innerHTML = '';
+      const chapters = notesData[subjectName] || [];
+
+      if (chapters.length === 0) {
+        listEl.innerHTML = '<p class="text-gray-500 text-center p-4">No chapters added yet.</p>';
+        return;
+      }
+
+      chapters.forEach((chapter, index) => {
+        const item = document.createElement('div');
+        item.className = 'chapter-item';
+        item.innerHTML = `
+          <input type="checkbox" data-index="${index}" ${chapter.completed ? 'checked' : ''}>
+          <span class="ml-2 ${chapter.completed ? 'line-through text-gray-500' : ''}">${chapter.name}</span>
+          <button data-index="${index}" class="ml-2">&times;</button>
+        `;
+        listEl.appendChild(item);
+      });
+    }
+
+    function openChapterModal(subjectName) {
+      document.getElementById('chapter-modal-title').textContent = `${subjectName} Chapters`;
+      document.getElementById('chapter-modal').dataset.subject = subjectName;
+      document.getElementById('chapter-name-input').value = '';
+      renderChapterList(subjectName);
+      document.getElementById('chapter-modal').style.display = 'flex';
+    }
+
+
     function checkCelebration(subjectName, oldValue, newValue) {
       if (!settings.animations) return;
 
-      if (oldValue > 0 && newValue === 0) {
+      if (settings.mode === 'lectures' && oldValue > 0 && newValue === 0) {
         triggerCelebration(`${subjectName.toUpperCase()} BACKLOG COMPLETE!`);
         
-        // === CHANGED === Shortened delay
         setTimeout(() => {
           const total = Object.values(backlogData).reduce((sum, val) => sum + val, 0);
           if (total === 0) {
             triggerCelebration('TOTAL BACKLOG DEFEATED!');
           }
-        }, 1700); // Was 3200
+        }, 1700);
       }
     }
 
@@ -701,9 +1022,7 @@
       splashText.textContent = message;
       splashScreen.style.display = 'flex';
       
-      // Confetti
-      // === CHANGED === Shortened duration
-      const duration = 1500; // Was 3000
+      const duration = 1500;
       const end = Date.now() + duration;
       
       const frame = () => {
@@ -726,31 +1045,25 @@
       };
       frame();
       
-      // === CHANGED === Shortened duration
       setTimeout(() => {
         splashScreen.style.display = 'none';
-      }, 1500); // Was 3000
+      }, 1500);
     }
 
     function downloadImage() {
       const downloadMsg = document.getElementById('download-message');
       downloadMsg.textContent = 'Preparing image...';
       
-      // Create the dynamic filename
       const now = new Date();
       let day = String(now.getDate()).padStart(2, '0');
-      let month = String(now.getMonth() + 1).padStart(2, '0'); // +1 because getMonth() is zero-based
+      let month = String(now.getMonth() + 1).padStart(2, '0'); 
       const year = now.getFullYear();
-      
-      // Use dashes (safe for filenames) instead of slashes
       const filename = `Backlog_${day}-${month}-${year}.png`;
       
       setTimeout(() => {
-        // Pass the new filename to the capture function
         captureAndDownload(filename, () => {
-          // This runs after capture is complete
           document.getElementById('download-modal').style.display = 'none';
-          downloadMsg.textContent = ''; // Reset message for next time
+          downloadMsg.textContent = ''; 
         });
       }, 100);
     }
@@ -765,14 +1078,12 @@
         ignoreElements: (element) => element.id === 'app-logo',
         
         onclone: (clonedDoc) => {
-          // Hide all header buttons
           const headerBtnIds = ['open-download-modal-btn', 'settings-btn'];
           headerBtnIds.forEach(id => {
             const el = clonedDoc.getElementById(id);
             if (el) el.style.display = 'none';
           });
           
-          // Hide all card buttons
           const buttonClasses = ['.edit-btn', '.plus-btn', '.minus-btn'];
           buttonClasses.forEach(selector => {
             clonedDoc.querySelectorAll(selector).forEach(btn => {
@@ -780,14 +1091,13 @@
             });
           });
           
-          // Hide the "Add Subject" card
           const addCard = clonedDoc.getElementById('add-subject-card');
           if (addCard) addCard.style.display = 'none';
         }
 
       }).then(canvas => {
         const link = document.createElement('a');
-        link.download = filename; // Use the dynamic filename
+        link.download = filename; 
         link.href = canvas.toDataURL('image/png');
         link.click();
         

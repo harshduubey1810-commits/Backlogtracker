@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Subject Backlog Tracker</title>
-  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -718,12 +717,24 @@
       }, 3000);
     }
 
+    // === CHANGED HERE ===
+    // Added dynamic filename generation
     function downloadImage() {
       const downloadMsg = document.getElementById('download-message');
       downloadMsg.textContent = 'Preparing image...';
       
+      // Create the dynamic filename
+      const now = new Date();
+      let day = String(now.getDate()).padStart(2, '0');
+      let month = String(now.getMonth() + 1).padStart(2, '0'); // +1 because getMonth() is zero-based
+      const year = now.getFullYear();
+      
+      // Use dashes (safe for filenames) instead of slashes
+      const filename = `Backlog_${day}-${month}-${year}.png`;
+      
       setTimeout(() => {
-        captureAndDownload('my_backlog.png', () => {
+        // Pass the new filename to the capture function
+        captureAndDownload(filename, () => {
           // This runs after capture is complete
           document.getElementById('download-modal').style.display = 'none';
           downloadMsg.textContent = ''; // Reset message for next time
@@ -763,7 +774,7 @@
 
       }).then(canvas => {
         const link = document.createElement('a');
-        link.download = filename;
+        link.download = filename; // Use the dynamic filename
         link.href = canvas.toDataURL('image/png');
         link.click();
         
@@ -777,4 +788,3 @@
   </script>
 </body>
 </html>
-

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Subject Backlog Tracker</title>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -717,7 +718,6 @@
       }, 3000);
     }
 
-    // === CHANGED === Modal closes instantly
     function downloadImage() {
       const downloadMsg = document.getElementById('download-message');
       downloadMsg.textContent = 'Preparing image...';
@@ -725,7 +725,6 @@
       setTimeout(() => {
         captureAndDownload('my_backlog.png', () => {
           // This runs after capture is complete
-          // Close the modal instantly
           document.getElementById('download-modal').style.display = 'none';
           downloadMsg.textContent = ''; // Reset message for next time
         });
@@ -778,3 +777,4 @@
   </script>
 </body>
 </html>
+

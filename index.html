@@ -386,7 +386,7 @@
           </button>
         </div>
 
-        <!-- === NEW: Suggestions Button === -->
+        <!-- Suggestions Button -->
         <div class="mb-4">
           <button id="open-suggestions-btn" class="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-left">
             Suggestions
@@ -428,7 +428,7 @@
     </div>
   </div>
   
-  <!-- === NEW: Suggestions Modal === -->
+  <!-- Suggestions Modal -->
   <div id="suggestions-modal" class="modal-overlay">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">Leave a Suggestion</h2>
@@ -677,9 +677,9 @@
           const chapters = notesData[subject.name] || [];
           const completedCount = chapters.filter(c => c.completed).length;
           const totalCount = chapters.length;
-          // === FIXED: Changed class from "plus-btn" to "edit-btn" to fix position ===
+          // === FIXED: Changed class to 'plus-btn' to fix position ===
           card.innerHTML = `
-            <div class="edit-btn"> 
+            <div class="plus-btn"> 
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
@@ -753,11 +753,16 @@
         const index = parseInt(card.dataset.index);
         const subject = subjects[index];
         
-        // This now works for both modes, as the edit button
-        // is in the same place (css class 'edit-btn') for both
-        if (e.target.closest('.edit-btn')) {
+        // === FIXED: Check for 'edit-btn' in LECTURE mode ===
+        if (settings.mode === 'lectures' && e.target.closest('.edit-btn')) {
           openSubjectModal(index);
           return; 
+        }
+        
+        // === FIXED: Check for 'plus-btn' in NOTES mode ===
+        if (settings.mode === 'notes' && e.target.closest('.plus-btn')) {
+          openSubjectModal(index);
+          return;
         }
         
         if (settings.mode === 'lectures') {
@@ -771,6 +776,7 @@
           }
         } else {
           // --- NOTES MODE CLICKS ---
+          // Any other click opens the chapter modal
           openChapterModal(subject.name);
         }
       });
@@ -815,7 +821,7 @@
         document.getElementById('settings-modal').style.display = 'none';
       });
 
-      // === NEW: Suggestions Button Listener ===
+      // Suggestions Button Listener
       document.getElementById('open-suggestions-btn').addEventListener('click', () => {
         document.getElementById('settings-modal').style.display = 'none';
         document.getElementById('suggestions-modal').style.display = 'flex';

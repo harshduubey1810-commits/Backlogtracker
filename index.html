@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Subject Backlog Tracker</title>
   
+  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-WTBE43TH6X"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -62,14 +63,13 @@
       background: rgba(255, 255, 255, 0.5);
     }
     
-    /* === FIXED: Swapped button positions back to original === */
     .edit-btn {
       top: 8px;
-      right: 48px; /* Original position */
+      right: 48px; 
     }
     .plus-btn {
       top: 8px;
-      right: 8px; /* Original position */
+      right: 8px; 
       font-size: 20px;
       font-weight: bold;
     }
@@ -234,12 +234,14 @@
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
   <div id="capture-area" class="max-w-4xl mx-auto bg-gray-100">
+    <!-- Header -->
     <div class="relative mb-8">
       
       <div id="user-greeting" class="absolute left-0 top-0 flex items-center gap-2" style="display: none;">
         <span id="greeting-text" class="text-lg font-bold text-gray-700"></span>
       </div>
       
+      <!-- Header buttons (right) -->
       <div class="absolute right-0 top-0 flex gap-2">
         <div id="open-download-modal-btn" class="header-btn bg-purple-500 hover:bg-purple-600">📸</div>
         <div id="settings-btn" class="header-btn bg-blue-500 hover:bg-blue-600">⚙️</div>
@@ -251,6 +253,7 @@
       </h1>
     </div>
 
+    <!-- Mode Toggle -->
     <div class="mb-4">
       <h3 class="text-lg font-semibold text-gray-700 text-center mb-2">Backlog Type</h3>
       <div class="flex justify-center gap-2">
@@ -259,15 +262,19 @@
       </div>
     </div>
 
+    <!-- Total Backlog Card -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
       <h2 id="total-pending-label" class="text-xl font-semibold text-gray-700 mb-2">Total Pending Lectures</h2>
       <div id="total-backlog" class="text-5xl font-extrabold text-blue-600">0</div>
     </div>
 
+    <!-- Subject Grid -->
     <div id="subject-grid" class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-      </div>
+      <!-- Subject cards will be inserted here -->
+    </div>
   </div>
 
+  <!-- Update Backlog Modal (For Lectures) -->
   <div id="modal" class="modal-overlay">
     <div class="modal-content">
       <h2 id="modal-title" class="text-2xl font-bold mb-4">Update Backlog</h2>
@@ -280,13 +287,17 @@
     </div>
   </div>
 
+  <!-- Chapter Modal (For Notes) -->
   <div id="chapter-modal" class="modal-overlay" data-subject="">
     <div class="modal-content">
       <h2 id="chapter-modal-title" class="text-2xl font-bold mb-4">Chapters</h2>
       
+      <!-- Chapter List -->
       <div id="chapter-list" class="mb-4">
-        </div>
+        <!-- Chapters will be rendered here -->
+      </div>
       
+      <!-- Add Chapter Form -->
       <div class="flex gap-2 mb-4">
         <input type="text" id="chapter-name-input" placeholder="New chapter name" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg">
         <button id="add-chapter-btn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-2xl">+</button>
@@ -296,6 +307,7 @@
     </div>
   </div>
 
+  <!-- User Details Modal -->
   <div id="user-details-modal" class="modal-overlay">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">Welcome! Set Your Details</h2>
@@ -311,6 +323,7 @@
     </div>
   </div>
 
+  <!-- Subject Add/Edit Modal -->
   <div id="subject-modal" class="modal-overlay">
     <div class="modal-content">
       <h2 id="subject-modal-title" class="text-2xl font-bold mb-4">Add New Subject</h2>
@@ -324,6 +337,7 @@
     </div>
   </div>
 
+  <!-- Confirm Remove Modal -->
   <div id="confirm-modal" class="modal-overlay">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">Confirm Removal</h2>
@@ -335,6 +349,7 @@
     </div>
   </div>
 
+  <!-- Download Modal -->
   <div id="download-modal" class="modal-overlay">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">Download Wallpaper</h2>
@@ -347,12 +362,15 @@
     </div>
   </div>
 
+  <!-- Settings Modal -->
   <div id="settings-modal" class="modal-overlay">
     <div class="modal-content flex flex-col h-full max-h-[90vh]">
       
+      <!-- Main Content Area (grows to fill space) -->
       <div class="flex-grow">
         <h2 class="text-2xl font-bold mb-6">Settings</h2>
 
+        <!-- Animation Toggle -->
         <div class="flex items-center justify-between mb-6">
           <span class="text-lg font-semibold text-gray-700">Enable Celebrations</span>
           <label class="switch">
@@ -361,12 +379,21 @@
           </label>
         </div>
 
+        <!-- Change Name button -->
         <div class="border-t pt-4 mb-4">
           <button id="change-name-btn" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-left">
             Change Name
           </button>
         </div>
 
+        <!-- === NEW: Suggestions Button === -->
+        <div class="mb-4">
+          <button id="open-suggestions-btn" class="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-left">
+            Suggestions
+          </button>
+        </div>
+
+        <!-- Help Section -->
         <div class="border-t pt-4">
           <button id="toggle-help-btn" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-left mb-2">
             Help
@@ -383,6 +410,7 @@
         </div>
       </div>
 
+      <!-- Modal Footer (Stays at the bottom) -->
       <div class="border-t pt-4 mt-6">
         <div class="flex justify-between items-center">
           
@@ -399,7 +427,32 @@
       </div>
     </div>
   </div>
+  
+  <!-- === NEW: Suggestions Modal === -->
+  <div id="suggestions-modal" class="modal-overlay">
+    <div class="modal-content">
+      <h2 class="text-2xl font-bold mb-4">Leave a Suggestion</h2>
+      
+      <!-- This form will be handled by Netlify -->
+      <form name="suggestions" method="POST" data-netlify="true">
+        <div class="mb-4">
+          <label class="block text-sm font-semibold mb-2">Your Name</label>
+          <input type="text" name="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg" required>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-semibold mb-2">Suggestion</label>
+          <textarea name="message" class="w-full px-4 py-2 border border-gray-300 rounded-lg" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold">
+          Submit
+        </button>
+      </form>
+      
+      <button id="close-suggestions-modal-btn" class="w-full mt-2 px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold">Close</button>
+    </div>
+  </div>
 
+  <!-- Splash Screen -->
   <div id="splash-screen">
     <div id="splash-text"></div>
   </div>
@@ -624,9 +677,9 @@
           const chapters = notesData[subject.name] || [];
           const completedCount = chapters.filter(c => c.completed).length;
           const totalCount = chapters.length;
-          // === FIXED: Changed class from "edit-btn" to "plus-btn" to fix position ===
+          // === FIXED: Changed class from "plus-btn" to "edit-btn" to fix position ===
           card.innerHTML = `
-            <div class="plus-btn"> 
+            <div class="edit-btn"> 
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
@@ -700,13 +753,9 @@
         const index = parseInt(card.dataset.index);
         const subject = subjects[index];
         
-        // === FIXED: In notes mode, the button now has class 'plus-btn' ===
-        if (settings.mode === 'notes' && e.target.closest('.plus-btn')) {
-          openSubjectModal(index);
-          return;
-        }
-        // === FIXED: In lecture mode, the button has class 'edit-btn' ===
-        if (settings.mode === 'lectures' && e.target.closest('.edit-btn')) {
+        // This now works for both modes, as the edit button
+        // is in the same place (css class 'edit-btn') for both
+        if (e.target.closest('.edit-btn')) {
           openSubjectModal(index);
           return; 
         }
@@ -765,6 +814,16 @@
         document.getElementById('user-details-modal').style.display = 'flex';
         document.getElementById('settings-modal').style.display = 'none';
       });
+
+      // === NEW: Suggestions Button Listener ===
+      document.getElementById('open-suggestions-btn').addEventListener('click', () => {
+        document.getElementById('settings-modal').style.display = 'none';
+        document.getElementById('suggestions-modal').style.display = 'flex';
+      });
+      document.getElementById('close-suggestions-modal-btn').addEventListener('click', () => {
+        document.getElementById('suggestions-modal').style.display = 'none';
+      });
+
 
       // Download modal
       document.getElementById('open-download-modal-btn').addEventListener('click', () => {

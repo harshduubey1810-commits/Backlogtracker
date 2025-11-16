@@ -177,7 +177,7 @@
       
       <div id="user-greeting" class="absolute left-0 top-0 flex items-center gap-2" style="display: none;">
         <span id="greeting-text" class="text-lg font-bold text-gray-700"></span>
-        </div>
+      </div>
       
       <div class="absolute right-0 top-0 flex gap-2">
         <div id="open-download-modal-btn" class="header-btn bg-purple-500 hover:bg-purple-600">📸</div>
@@ -501,13 +501,11 @@
         helpMsg.style.display = helpMsg.style.display === 'none' ? 'block' : 'none';
       });
 
-      // === CHANGED === New listener for "Change Name" button
       document.getElementById('change-name-btn').addEventListener('click', () => {
         if (userData) {
           document.getElementById('user-name-input').value = userData.name || '';
         }
         document.getElementById('user-details-modal').style.display = 'flex';
-        // Also close the settings modal
         document.getElementById('settings-modal').style.display = 'none';
       });
 
@@ -532,8 +530,6 @@
       // User details modal
       document.getElementById('save-user-details-btn').addEventListener('click', saveUserDetails);
       
-      // === CHANGED === Removed the old 'edit-user-details-btn' listener
-
       // Subject modal
       document.getElementById('close-subject-modal-btn').addEventListener('click', () => {
         document.getElementById('subject-modal').style.display = 'none';
@@ -688,12 +684,13 @@
       if (oldValue > 0 && newValue === 0) {
         triggerCelebration(`${subjectName.toUpperCase()} BACKLOG COMPLETE!`);
         
+        // === CHANGED === Shortened delay
         setTimeout(() => {
           const total = Object.values(backlogData).reduce((sum, val) => sum + val, 0);
           if (total === 0) {
             triggerCelebration('TOTAL BACKLOG DEFEATED!');
           }
-        }, 3200);
+        }, 1700); // Was 3200
       }
     }
 
@@ -705,7 +702,8 @@
       splashScreen.style.display = 'flex';
       
       // Confetti
-      const duration = 3000;
+      // === CHANGED === Shortened duration
+      const duration = 1500; // Was 3000
       const end = Date.now() + duration;
       
       const frame = () => {
@@ -728,9 +726,10 @@
       };
       frame();
       
+      // === CHANGED === Shortened duration
       setTimeout(() => {
         splashScreen.style.display = 'none';
-      }, 3000);
+      }, 1500); // Was 3000
     }
 
     function downloadImage() {
@@ -767,7 +766,6 @@
         
         onclone: (clonedDoc) => {
           // Hide all header buttons
-          // === CHANGED === Removed 'edit-user-details-btn' from this list
           const headerBtnIds = ['open-download-modal-btn', 'settings-btn'];
           headerBtnIds.forEach(id => {
             const el = clonedDoc.getElementById(id);

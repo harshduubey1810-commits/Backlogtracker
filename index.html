@@ -852,96 +852,91 @@
       if (el) el.textContent = greeting;
     }
 
-    function render() {
-      const grid = document.getElementById('subject-grid');
-      if (!grid) return;
-      grid.innerHTML = '';
+function render() {
+  const grid = document.getElementById('subject-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
 
-      const btnLectures = document.getElementById('btn-mode-lectures');
-      const btnNotes = document.getElementById('btn-mode-notes');
-      const totalLabel = document.getElementById('total-pending-label');
-      
-      const isCustomizing = settings.customizing;
+  const btnLectures = document.getElementById('btn-mode-lectures');
+  const btnNotes = document.getElementById('btn-mode-notes');
+  const totalLabel = document.getElementById('total-pending-label');
+  
+  const isCustomizing = settings.customizing;
 
-      if (settings.mode === 'lectures') {
-        btnLectures.classList.add('mode-btn-active');
-        btnNotes.classList.remove('mode-btn-active');
-        if(totalLabel) totalLabel.textContent = 'Total Pending Lectures';
-      } else {
-        btnNotes.classList.add('mode-btn-active');
-        btnLectures.classList.remove('mode-btn-active');
-        if(totalLabel) totalLabel.textContent = 'Total Chapters Complete';
-      }
+  if (settings.mode === 'lectures') {
+    btnLectures.classList.add('mode-btn-active');
+    btnNotes.classList.remove('mode-btn-active');
+    if(totalLabel) totalLabel.textContent = 'Total Pending Lectures';
+  } else {
+    btnNotes.classList.add('mode-btn-active');
+    btnLectures.classList.remove('mode-btn-active');
+    if(totalLabel) totalLabel.textContent = 'Total Chapters Complete';
+  }
 
-      // Render subject cards
-      subjects.forEach((subject, index) => {
-        const card = document.createElement('div');
-        card.className = `subject-card ${subject.color} text-white p-6 rounded-lg shadow-md`;
-        card.dataset.index = index;
-        
-        if (settings.mode === 'lectures') {
-          const count = parseInt(backlogData[subject.name]) || 0;
-          card.innerHTML = `
-            <div class="move-btn-container" style="display: ${isCustomizing ? 'flex' : 'none'};">
-               <button class="move-btn btn-left" data-index="${index}" title="Move Left">←</button>
-               <button class="move-btn btn-right" data-index="${index}" title="Move Right">→</button>
-            </div>
-            <div class="minus-btn text-white">−</div>
-            <div class="plus-btn text-white">+</div>
-            <div class="edit-btn">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-            </div>
-            <div class="color-btn text-white" style="display: ${isCustomizing ? 'flex' : 'none'};">🎨</div>
-            <h2 class="text-xl sm:text-2xl font-bold mb-2 mt-4">${subject.name}</h2>
-            <div class="text-4xl sm:text-5xl font-extrabold mb-1">${count}</div>
-            <div class="text-sm opacity-90 h-5"></div>
-          `;
-        } else {
-          // NOTES MODE
-          const chapters = notesData[subject.name] || [];
-          const completedCount = chapters.filter(c => c.completed).length;
-          const totalCount = chapters.length;
-          card.innerHTML = `
-            <div class="move-btn-container" style="display: ${isCustomizing ? 'flex' : 'none'};">
-               <button class="move-btn btn-left" data-index="${index}">←</button>
-               <button class="move-btn btn-right" data-index="${index}">→</button>
-            </div>
-            <div class="plus-btn"> 
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
-            </div>
-            <div class="color-btn text-white" style="display: ${isCustomizing ? 'flex' : 'none'};">🎨</div>
-            <h2 class="text-xl sm:text-2xl font-bold mb-2 mt-4">${subject.name} Notes</h2>
-            <div class="flex items-baseline text-4xl sm:text-5xl font-extrabold mb-1">
-              ${completedCount}<span class="text-3xl opacity-80 pl-1">/${totalCount}</span>
-            </div>
-            <div class="text-sm opacity-90 h-5"></div>
-          `;
-        }
-        grid.appendChild(card);
-      });
-
-      // Add "Add Subject" card - Hide completely if customizing
-      const addCard = document.createElement('div');
-      addCard.id = 'add-subject-card';
-      addCard.className = `bg-white border-2 border-dashed border-gray-300 text-gray-400 p-6 rounded-lg shadow-md flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 hover:text-gray-500 transition`;
-      
-      if (!isCustomizing) {
-          addCard.innerHTML = `
-            <div class="text-5xl mb-2">+</div>
-            <div class="font-semibold">Add Subject</div>
-          `;
-          grid.appendChild(addCard);
-      }
-      
-      // If customizing, do not append the Add Card, it's already implicitly hidden by the loop.
-
-      // Update total backlog
-      updateTotalBacklog();
+  // Render subject cards
+  subjects.forEach((subject, index) => {
+    const card = document.createElement('div');
+    card.className = `subject-card ${subject.color} text-white p-6 rounded-lg shadow-md`;
+    card.dataset.index = index;
+    
+    if (settings.mode === 'lectures') {
+      const count = parseInt(backlogData[subject.name]) || 0;
+      card.innerHTML = `
+        <div class="move-btn-container" style="display: ${isCustomizing ? 'flex' : 'none'};">
+           <button class="move-btn btn-left" data-index="${index}" title="Move Left">←</button>
+           <button class="move-btn btn-right" data-index="${index}" title="Move Right">→</button>
+        </div>
+        <div class="minus-btn text-white">−</div>
+        <div class="plus-btn text-white">+</div>
+        <div class="edit-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </div>
+        <div class="color-btn text-white" style="display: ${isCustomizing ? 'flex' : 'none'};">🎨</div>
+        <h2 class="text-xl sm:text-2xl font-bold mb-2 mt-4">${subject.name}</h2>
+        <div class="text-4xl sm:text-5xl font-extrabold mb-1">${count}</div>
+        <div class="text-sm opacity-90 h-5"></div>
+      `;
+    } else {
+      // NOTES MODE
+      const chapters = notesData[subject.name] || [];
+      const completedCount = chapters.filter(c => c.completed).length;
+      const totalCount = chapters.length;
+      card.innerHTML = `
+        <div class="move-btn-container" style="display: ${isCustomizing ? 'flex' : 'none'};">
+           <button class="move-btn btn-left" data-index="${index}">←</button>
+           <button class="move-btn btn-right" data-index="${index}">→</button>
+        </div>
+        <div class="plus-btn"> 
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+          </svg>
+        </div>
+        <div class="color-btn text-white" style="display: ${isCustomizing ? 'flex' : 'none'};">🎨</div>
+        <h2 class="text-xl sm:text-2xl font-bold mb-2 mt-4">${subject.name} Notes</h2>
+        <div class="flex items-baseline text-4xl sm:text-5xl font-extrabold mb-1">
+          ${completedCount}<span class="text-3xl opacity-80 pl-1">/${totalCount}</span>
+        </div>
+        <div class="text-sm opacity-90 h-5"></div>
+      `;
     }
+    grid.appendChild(card);
+  });
+
+  // Add "Add Subject" card - now ALWAYS visible (even in customization mode)
+  const addCard = document.createElement('div');
+  addCard.id = 'add-subject-card';
+  addCard.className = `bg-white border-2 border-dashed border-gray-300 text-gray-400 p-6 rounded-lg shadow-md flex flex-col items-center justify-center cursor-pointer hover:border-gray-400 hover:text-gray-500 transition`;
+  addCard.innerHTML = `
+    <div class="text-5xl mb-2">+</div>
+    <div class="font-semibold">Add Subject</div>
+  `;
+  grid.appendChild(addCard);
+
+  // Update total backlog
+  updateTotalBacklog();
+}
 
     function updateTotalBacklog() {
       const totalEl = document.getElementById('total-backlog');

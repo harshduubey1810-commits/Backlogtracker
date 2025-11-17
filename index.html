@@ -37,7 +37,7 @@
 
     /* NEW: Customizing Class Styles */
     .customize-active {
-        background-color: #e5e7eb; /* Slightly darker background */
+        background-color: #e5e7eb;
     }
 
     .header-btn {
@@ -210,8 +210,14 @@
     .chapter-item:last-child { border-bottom: none; }
     .chapter-item input[type="checkbox"] {
       width: 20px; height: 20px; margin-right: 0.75rem;
+      flex-shrink: 0 !important;
     }
-    .chapter-item span { flex-grow: 1; font-size: 1.1rem; }
+    .chapter-item span { 
+      flex-grow: 1; 
+      font-size: 1.1rem;
+      word-break: break-word; 
+      min-width: 0; 
+    }
     
     /* Chapter Action Buttons */
     .chapter-btn {
@@ -683,6 +689,7 @@
           if (e.target.id === 'user-details-modal' && (!userData || !userData.name)) return;
           
           e.target.style.display = 'none';
+          document.body.style.overflow = '';
           
           render(); 
         }
@@ -709,6 +716,7 @@
           el.setAttribute('maxlength', item.max);
           el.addEventListener('input', function() {
             if (this.value.length === item.max) {
+               // Only show toast if the current length is at the max
                showToast(`Oops! Can't enter more than ${item.max} characters`);
             }
           });
@@ -781,6 +789,7 @@
         document.getElementById('user-greeting').style.display = 'flex';
       } else {
         document.getElementById('user-details-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Lock scroll for mandatory modal
       }
     }
 
@@ -906,8 +915,8 @@
             </div>
             <div class="color-btn text-white" style="display: ${isCustomizing ? 'flex' : 'none'};">🎨</div>
             <h2 class="text-xl sm:text-2xl font-bold mb-2 mt-4">${subject.name} Notes</h2>
-            <div class="text-4xl sm:text-5xl font-extrabold mb-1">
-              ${completedCount}<span class="text-3xl opacity-80">/${totalCount}</span>
+            <div class="flex items-baseline text-4xl sm:text-5xl font-extrabold mb-1">
+              ${completedCount}<span class="text-3xl opacity-80 pl-1">/${totalCount}</span>
             </div>
             <div class="text-sm opacity-90 h-5"></div>
           `;
@@ -925,11 +934,10 @@
             <div class="text-5xl mb-2">+</div>
             <div class="font-semibold">Add Subject</div>
           `;
-      } else {
-          addCard.style.display = 'none';
+          grid.appendChild(addCard);
       }
-
-      grid.appendChild(addCard);
+      
+      // If customizing, do not append the Add Card, it's already implicitly hidden by the loop.
 
       // Update total backlog
       updateTotalBacklog();
@@ -1058,6 +1066,7 @@
       });
       
       document.getElementById('color-picker-modal').style.display = 'flex';
+      document.body.style.overflow = 'hidden'; // Lock scroll
     }
     
     // Apply Selected Color
@@ -1069,6 +1078,7 @@
       render();
       
       document.getElementById('color-picker-modal').style.display = 'none';
+      document.body.style.overflow = ''; // Unlock scroll
       currentEditingSubjectIndex = null;
     }
 
@@ -1129,11 +1139,11 @@
         if (isCustomizing) {
             if (captureArea) captureArea.classList.add('customize-active');
             if (customizeFooter) customizeFooter.style.display = 'block';
-            showToast("Customization Mode Active", 'bg-blue-500');
+            showToast("Customization Mode Active", 'bg-blue-500'); // Blue for ON
         } else {
             if (captureArea) captureArea.classList.remove('customize-active');
             if (customizeFooter) customizeFooter.style.display = 'none';
-            showToast("Changes Saved!", 'bg-green-600');
+            showToast("Changes Saved!", 'bg-green-600'); // Green for Saved/OFF
         }
         
         render(); 
@@ -1152,7 +1162,7 @@
           const card = e.target.closest('.subject-card');
           const addCard = e.target.closest('#add-subject-card');
           
-          if (addCard) {
+          if (addCard && !settings.customizing) {
             openSubjectModal();
             return;
           }
@@ -1210,23 +1220,27 @@
       
       document.getElementById('close-color-modal-btn').addEventListener('click', () => {
          document.getElementById('color-picker-modal').style.display = 'none';
+         document.body.style.overflow = '';
       });
 
       document.getElementById('export-data-btn').addEventListener('click', exportData);
       
       document.getElementById('import-data-btn').addEventListener('click', () => {
         document.getElementById('settings-modal').style.display = 'none'; 
+        document.body.style.overflow = 'hidden'; // Lock scroll
         document.getElementById('import-warning-modal').style.display = 'flex';
       });
       
       document.getElementById('cancel-import-btn').addEventListener('click', () => {
         document.getElementById('import-warning-modal').style.display = 'none';
         document.getElementById('settings-modal').style.display = 'flex'; 
+        document.body.style.overflow = ''; // Unlock scroll
       });
       
       document.getElementById('confirm-import-btn').addEventListener('click', () => {
         document.getElementById('import-warning-modal').style.display = 'none';
         document.getElementById('file-upload').click();
+        document.body.style.overflow = ''; // Unlock scroll after file picker
       });
       
       document.getElementById('file-upload').addEventListener('change', function() {
@@ -1235,12 +1249,14 @@
 
       document.getElementById('reset-defaults-btn').addEventListener('click', () => {
          document.getElementById('settings-modal').style.display = 'none';
+         document.body.style.overflow = 'hidden'; // Lock scroll
          document.getElementById('reset-warning-modal').style.display = 'flex';
       });
 
       document.getElementById('cancel-reset-btn').addEventListener('click', () => {
          document.getElementById('reset-warning-modal').style.display = 'none';
          document.getElementById('settings-modal').style.display = 'flex';
+         document.body.style.overflow = ''; // Unlock scroll
       });
 
       document.getElementById('confirm-reset-btn').addEventListener('click', () => {
@@ -1264,10 +1280,12 @@
 
       document.getElementById('settings-btn').addEventListener('click', () => {
         document.getElementById('settings-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Lock scroll
       });
 
       document.getElementById('close-settings-modal-btn').addEventListener('click', () => {
         document.getElementById('settings-modal').style.display = 'none';
+        document.body.style.overflow = ''; // Unlock scroll
       });
       document.getElementById('animation-toggle').addEventListener('change', (e) => {
         settings.animations = e.target.checked;
@@ -1283,26 +1301,32 @@
         }
         document.getElementById('user-details-modal').style.display = 'flex';
         document.getElementById('settings-modal').style.display = 'none';
+        document.body.style.overflow = 'hidden'; // Lock scroll
       });
 
       document.getElementById('open-suggestions-btn').addEventListener('click', () => {
         document.getElementById('settings-modal').style.display = 'none';
+        document.body.style.overflow = 'hidden'; // Lock scroll
         document.getElementById('suggestions-modal').style.display = 'flex';
       });
       document.getElementById('close-suggestions-modal-btn').addEventListener('click', () => {
         document.getElementById('suggestions-modal').style.display = 'none';
+        document.body.style.overflow = ''; // Unlock scroll
       });
 
       document.getElementById('open-download-modal-btn').addEventListener('click', () => {
         document.getElementById('download-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Lock scroll
       });
       document.getElementById('close-download-modal-btn').addEventListener('click', () => {
         document.getElementById('download-modal').style.display = 'none';
+        document.body.style.overflow = ''; // Unlock scroll
       });
       document.getElementById('download-image-btn').addEventListener('click', downloadImage);
 
       document.getElementById('close-modal-btn').addEventListener('click', () => {
         document.getElementById('modal').style.display = 'none';
+        document.body.style.overflow = ''; // Unlock scroll
       });
       document.getElementById('save-modal-btn').addEventListener('click', saveUpdateModal);
 
@@ -1310,6 +1334,7 @@
       
       document.getElementById('close-subject-modal-btn').addEventListener('click', () => {
         document.getElementById('subject-modal').style.display = 'none';
+        document.body.style.overflow = ''; // Unlock scroll
       });
       document.getElementById('save-subject-btn').addEventListener('click', saveSubjectModal);
       document.getElementById('remove-subject-btn').addEventListener('click', () => {
@@ -1318,15 +1343,18 @@
         document.getElementById('confirm-message').textContent = 
           `Do you really want to remove '${subject.name}'? This cannot be undone.`;
         document.getElementById('confirm-modal').style.display = 'flex';
+        document.body.style.overflow = 'hidden'; // Lock scroll
       });
 
       document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
         document.getElementById('confirm-modal').style.display = 'none';
+        document.body.style.overflow = ''; // Unlock scroll
       });
       document.getElementById('confirm-remove-btn').addEventListener('click', confirmRemoveSubject);
       
       document.getElementById('close-chapter-modal-btn').addEventListener('click', () => {
         document.getElementById('chapter-modal').style.display = 'none';
+        document.body.style.overflow = ''; // Unlock scroll
         render(); 
       });
       document.getElementById('add-chapter-btn').addEventListener('click', () => {
@@ -1382,6 +1410,7 @@
       document.getElementById('current-subject').value = subjectName;
       document.getElementById('lecture-input').value = backlogData[subjectName] || 0;
       document.getElementById('modal').style.display = 'flex';
+      document.body.style.overflow = 'hidden'; // Lock scroll
     }
 
     function saveUpdateModal() {
@@ -1392,6 +1421,7 @@
       backlogData[subjectName] = newValue;
       saveBacklogData();
       document.getElementById('modal').style.display = 'none';
+      document.body.style.overflow = ''; // Unlock scroll
       render();
       
       checkCelebration(subjectName, oldValue, newValue);
@@ -1409,6 +1439,7 @@
       setRandomGreeting(name);
       document.getElementById('user-greeting').style.display = 'flex';
       document.getElementById('user-details-modal').style.display = 'none';
+      document.body.style.overflow = ''; // Unlock scroll
     }
 
     function openSubjectModal(editIndex = null) {
@@ -1431,6 +1462,7 @@
       }
       
       modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden'; // Lock scroll
     }
 
     function saveSubjectModal() {
@@ -1476,6 +1508,7 @@
       saveBacklogData();
       saveNotesData(); 
       document.getElementById('subject-modal').style.display = 'none';
+      document.body.style.overflow = ''; // Unlock scroll
       render();
     }
 
@@ -1492,6 +1525,7 @@
       saveNotesData(); 
       document.getElementById('confirm-modal').style.display = 'none';
       document.getElementById('subject-modal').style.display = 'none';
+      document.body.style.overflow = ''; // Unlock scroll
       render();
     }
 
@@ -1534,6 +1568,7 @@
       document.getElementById('chapter-name-input').value = '';
       renderChapterList(subjectName);
       document.getElementById('chapter-modal').style.display = 'flex';
+      document.body.style.overflow = 'hidden'; // Lock scroll
     }
 
 

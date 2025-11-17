@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Subject Backlog Tracker</title>
   
-  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-WTBE43TH6X"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -18,6 +17,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
   
   <style>
     body {
@@ -46,7 +46,7 @@
     .subject-card:hover {
       transform: scale(1.02);
     }
-    .edit-btn, .plus-btn, .minus-btn {
+    .edit-btn, .plus-btn, .minus-btn, .color-btn {
       position: absolute;
       width: 32px;
       height: 32px;
@@ -59,7 +59,7 @@
       transition: background 0.2s;
       z-index: 10;
     }
-    .edit-btn:hover, .plus-btn:hover, .minus-btn:hover {
+    .edit-btn:hover, .plus-btn:hover, .minus-btn:hover, .color-btn:hover {
       background: rgba(255, 255, 255, 0.5);
     }
     
@@ -78,6 +78,11 @@
       right: 8px;
       font-size: 24px;
       font-weight: bold;
+    }
+    .color-btn {
+      bottom: 8px;
+      left: 8px;
+      font-size: 16px;
     }
     
     .modal-overlay {
@@ -133,6 +138,17 @@
       padding: 2rem;
     }
     
+    /* Toast Notification Styles */
+    #toast-notification {
+      transition: all 0.3s ease-in-out;
+      transform: translate(-50%, -20px);
+      opacity: 0;
+    }
+    #toast-notification.show {
+      transform: translate(-50%, 20px);
+      opacity: 1;
+    }
+
     .switch {
       position: relative;
       display: inline-block;
@@ -186,6 +202,7 @@
       justify-content: space-between;
       padding: 0.75rem 0.5rem;
       border-bottom: 1px solid #e5e7eb;
+      cursor: grab; 
     }
     .chapter-item:last-child {
       border-bottom: none;
@@ -214,34 +231,68 @@
     
     .mode-btn {
       padding: 0.5rem 1.25rem;
-      border-radius: 9999px; /* full pill shape */
+      border-radius: 9999px;
       font-weight: 600;
       transition: all 0.2s;
-      border: 2px solid #3b82f6; /* blue border */
+      border: 2px solid #3b82f6;
     }
     .mode-btn-active {
-      background-color: #3b82f6; /* solid blue */
+      background-color: #3b82f6;
       color: white;
     }
     .mode-btn:not(.mode-btn-active) {
       background-color: transparent;
-      color: #3b82f6; /* blue text */
+      color: #3b82f6;
     }
     .mode-btn:not(.mode-btn-active):hover {
-      background-color: #dbeafe; /* light blue bg on hover */
+      background-color: #dbeafe;
     }
+
+    .sortable-ghost {
+      opacity: 0.4;
+      background-color: #c0e0ff !important;
+    }
+    .sortable-chosen {
+      cursor: grabbing !important;
+      transform: scale(1.02);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    .chapter-item.sortable-chosen {
+      background: #f0f9ff;
+    }
+    
+    /* Color Swatch Styles */
+    .color-swatch {
+      width: 100%;
+      height: 50px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.1s;
+      border: 2px solid transparent;
+    }
+    .color-swatch:hover {
+      transform: scale(1.1);
+      border-color: #000;
+    }
+
   </style>
 </head>
 <body class="bg-gray-100 p-4 sm:p-8">
+
+  <div id="toast-notification" class="fixed top-0 left-1/2 z-[3000] bg-red-500 text-white px-6 py-3 rounded-full shadow-lg font-semibold pointer-events-none flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+    </svg>
+    <span id="toast-message">Oops! Limit reached.</span>
+  </div>
+
   <div id="capture-area" class="max-w-4xl mx-auto bg-gray-100">
-    <!-- Header -->
     <div class="relative mb-8">
       
       <div id="user-greeting" class="absolute left-0 top-0 flex items-center gap-2" style="display: none;">
         <span id="greeting-text" class="text-lg font-bold text-gray-700"></span>
       </div>
       
-      <!-- Header buttons (right) -->
       <div class="absolute right-0 top-0 flex gap-2">
         <div id="open-download-modal-btn" class="header-btn bg-purple-500 hover:bg-purple-600">📸</div>
         <div id="settings-btn" class="header-btn bg-blue-500 hover:bg-blue-600">⚙️</div>
@@ -253,8 +304,7 @@
       </h1>
     </div>
 
-    <!-- Mode Toggle -->
-    <div class="mb-4">
+    <div id="mode-toggle-area" class="mb-4">
       <h3 class="text-lg font-semibold text-gray-700 text-center mb-2">Backlog Type</h3>
       <div class="flex justify-center gap-2">
         <button id="btn-mode-lectures" class="mode-btn">Lectures</button>
@@ -262,19 +312,15 @@
       </div>
     </div>
 
-    <!-- Total Backlog Card -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-6">
       <h2 id="total-pending-label" class="text-xl font-semibold text-gray-700 mb-2">Total Pending Lectures</h2>
       <div id="total-backlog" class="text-5xl font-extrabold text-blue-600">0</div>
     </div>
 
-    <!-- Subject Grid -->
     <div id="subject-grid" class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-      <!-- Subject cards will be inserted here -->
-    </div>
+      </div>
   </div>
 
-  <!-- Update Backlog Modal (For Lectures) -->
   <div id="modal" class="modal-overlay">
     <div class="modal-content">
       <h2 id="modal-title" class="text-2xl font-bold mb-4">Update Backlog</h2>
@@ -287,17 +333,13 @@
     </div>
   </div>
 
-  <!-- Chapter Modal (For Notes) -->
   <div id="chapter-modal" class="modal-overlay" data-subject="">
     <div class="modal-content">
       <h2 id="chapter-modal-title" class="text-2xl font-bold mb-4">Chapters</h2>
       
-      <!-- Chapter List -->
       <div id="chapter-list" class="mb-4">
-        <!-- Chapters will be rendered here -->
-      </div>
+        </div>
       
-      <!-- Add Chapter Form -->
       <div class="flex gap-2 mb-4">
         <input type="text" id="chapter-name-input" placeholder="New chapter name" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg">
         <button id="add-chapter-btn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold text-2xl">+</button>
@@ -307,7 +349,6 @@
     </div>
   </div>
 
-  <!-- User Details Modal -->
   <div id="user-details-modal" class="modal-overlay">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">Welcome! Set Your Details</h2>
@@ -323,7 +364,6 @@
     </div>
   </div>
 
-  <!-- Subject Add/Edit Modal -->
   <div id="subject-modal" class="modal-overlay">
     <div class="modal-content">
       <h2 id="subject-modal-title" class="text-2xl font-bold mb-4">Add New Subject</h2>
@@ -336,8 +376,16 @@
       <button id="remove-subject-btn" class="w-full mt-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold" style="display: none;">Remove</button>
     </div>
   </div>
+  
+  <div id="color-picker-modal" class="modal-overlay">
+    <div class="modal-content">
+      <h2 class="text-2xl font-bold mb-4">Pick a Color</h2>
+      <div id="color-grid" class="grid grid-cols-4 gap-4 mb-4">
+        </div>
+      <button id="close-color-modal-btn" class="w-full px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold">Cancel</button>
+    </div>
+  </div>
 
-  <!-- Confirm Remove Modal -->
   <div id="confirm-modal" class="modal-overlay">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">Confirm Removal</h2>
@@ -348,8 +396,37 @@
       </div>
     </div>
   </div>
+  
+  <div id="import-warning-modal" class="modal-overlay">
+    <div class="modal-content">
+      <h2 class="text-2xl font-bold mb-4 text-red-600">⚠️ Warning</h2>
+      <p class="mb-6 text-gray-700 text-lg">
+        Importing other progress will <strong>remove current details</strong> including all subjects, chapter names, and your user profile.
+        <br><br>
+        This action cannot be undone.
+      </p>
+      <div class="flex gap-2">
+        <button id="cancel-import-btn" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold">Cancel</button>
+        <button id="confirm-import-btn" class="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold">Import</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- Download Modal -->
+  <div id="reset-warning-modal" class="modal-overlay">
+    <div class="modal-content">
+      <h2 class="text-2xl font-bold mb-4 text-red-600">⚠️ Reset Everything?</h2>
+      <p class="mb-6 text-gray-700 text-lg">
+        This will <strong>delete all your data</strong>, clear your progress, and restore the default subjects and chapters.
+        <br><br>
+        This action cannot be undone.
+      </p>
+      <div class="flex gap-2">
+        <button id="cancel-reset-btn" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg font-semibold">Cancel</button>
+        <button id="confirm-reset-btn" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold">Reset to Defaults</button>
+      </div>
+    </div>
+  </div>
+
   <div id="download-modal" class="modal-overlay">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">Download Wallpaper</h2>
@@ -362,15 +439,12 @@
     </div>
   </div>
 
-  <!-- Settings Modal -->
   <div id="settings-modal" class="modal-overlay">
     <div class="modal-content flex flex-col h-full max-h-[90vh]">
       
-      <!-- Main Content Area (grows to fill space) -->
-      <div class="flex-grow">
+      <div class="flex-grow overflow-y-auto">
         <h2 class="text-2xl font-bold mb-6">Settings</h2>
 
-        <!-- Animation Toggle -->
         <div class="flex items-center justify-between mb-6">
           <span class="text-lg font-semibold text-gray-700">Enable Celebrations</span>
           <label class="switch">
@@ -379,21 +453,36 @@
           </label>
         </div>
 
-        <!-- Change Name button -->
+        <div class="border-t pt-4 mb-4">
+          <h3 class="text-lg font-semibold text-gray-800 mb-2">Data Management</h3>
+          
+          <p class="text-red-600 font-bold text-sm mb-3 leading-tight bg-red-100 p-2 rounded border border-red-200">
+            Warning: Make sure to export your progress and save your file or your progress will be lost
+          </p>
+          
+          <div class="flex flex-row gap-2">
+            <button id="export-data-btn" class="flex-1 px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2">
+              <span>⬆️</span> Export
+            </button>
+            <button id="import-data-btn" class="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center justify-center gap-2">
+              <span>⬇️</span> Import
+            </button>
+            <input type="file" id="file-upload" accept=".json" style="display: none;">
+          </div>
+        </div>
+
         <div class="border-t pt-4 mb-4">
           <button id="change-name-btn" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-left">
             Change Name
           </button>
         </div>
 
-        <!-- Suggestions Button -->
         <div class="mb-4">
           <button id="open-suggestions-btn" class="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold text-left">
             Suggestions
           </button>
         </div>
 
-        <!-- Help Section -->
         <div class="border-t pt-4">
           <button id="toggle-help-btn" class="w-full px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold text-left mb-2">
             Help
@@ -404,13 +493,21 @@
               <li>• Click subject to set number.</li>
               <li>• Use + / - buttons.</li>
               <li>• Click pencil to rename/remove.</li>
+              <li>• Click 🎨 to pick color.</li>
               <li>• Click 📸 to save as image.</li>
             </ul>
           </div>
         </div>
+        
+        <div class="border-t pt-4 mt-4 mb-6">
+           <button id="reset-defaults-btn" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-left flex items-center justify-between">
+             <span>Reset to Defaults</span>
+             <span>⚠️</span>
+           </button>
+        </div>
+
       </div>
 
-      <!-- Modal Footer (Stays at the bottom) -->
       <div class="border-t pt-4 mt-6">
         <div class="flex justify-between items-center">
           
@@ -428,12 +525,10 @@
     </div>
   </div>
   
-  <!-- Suggestions Modal -->
   <div id="suggestions-modal" class="modal-overlay">
     <div class="modal-content">
       <h2 class="text-2xl font-bold mb-4">Leave a Suggestion</h2>
       
-      <!-- This form will be handled by Netlify -->
       <form name="suggestions" method="POST" data-netlify="true">
         <div class="mb-4">
           <label class="block text-sm font-semibold mb-2">Your Name</label>
@@ -452,21 +547,29 @@
     </div>
   </div>
 
-  <!-- Splash Screen -->
   <div id="splash-screen">
     <div id="splash-text"></div>
   </div>
 
   <script>
-    // State
+    // ----------------------------------------------------------
+    // !!! CRITICAL WARNING FOR AI AND DEVELOPERS !!!
+    // ----------------------------------------------------------
+    // DO NOT CHANGE THE NAMES OF THE VARIABLES BELOW (subjects, backlogData, userData, notesData).
+    // ----------------------------------------------------------
+    
     let subjects = [];
     let backlogData = {};
     let userData = null;
+    let notesData = {}; 
+    
     let settings = {
       animations: true,
       mode: 'lectures'
     };
-    let notesData = {}; 
+    
+    let chapterSortable = null;
+    let currentEditingSubjectIndex = null;
 
     const preloadedNotes = {
       'Physics': [
@@ -522,9 +625,12 @@
       ]
     };
 
+    // Clean 11-color palette (Removed Teal/Cyan/Duplicates)
     const availableColors = [
       'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
-      'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
+      'bg-purple-500', 'bg-pink-500', 'bg-indigo-500',
+      'bg-orange-500', 'bg-gray-500', 'bg-lime-500', 
+      'bg-rose-500'
     ];
 
     const motivationalMessages = [
@@ -535,6 +641,8 @@
       'JUST ONE MORE {name}!',
       'KEEP GRINDING {name}!'
     ];
+    
+    let toastTimeout;
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
@@ -542,11 +650,90 @@
       loadSettings(); 
       loadNotesData(); 
       attachEventListeners();
+      setupInputLimits(); 
+      initSortableGrid(); 
       render();
+      setupGlobalClickOutside(); 
     });
+    
+    function setupGlobalClickOutside() {
+      window.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+          // Do not close user details modal if name is missing
+          if (e.target.id === 'user-details-modal' && (!userData || !userData.name)) return;
+          
+          e.target.style.display = 'none';
+          
+          if (e.target.id === 'chapter-modal' && chapterSortable) {
+             chapterSortable.destroy();
+             chapterSortable = null;
+          }
+          
+          render(); 
+        }
+      });
+    }
+
+    function moveItemInArray(array, fromIndex, toIndex) {
+      const [item] = array.splice(fromIndex, 1);
+      array.splice(toIndex, 0, item);
+    }
+
+    function initSortableGrid() {
+      const grid = document.getElementById('subject-grid');
+      if (grid) {
+        new Sortable(grid, {
+          animation: 150,
+          delay: 200, 
+          delayOnTouchOnly: true, 
+          filter: '#add-subject-card', 
+          onEnd: (evt) => {
+            moveItemInArray(subjects, evt.oldIndex, evt.newIndex);
+            saveSubjects(); 
+            render(); 
+          }
+        });
+      }
+    }
+    
+    function setupInputLimits() {
+      const inputs = [
+        { id: 'user-name-input', max: 30 },
+        { id: 'user-class-input', max: 10 },
+        { id: 'subject-name-input', max: 20 },
+        { id: 'chapter-name-input', max: 50 }
+      ];
+      
+      inputs.forEach(item => {
+        const el = document.getElementById(item.id);
+        if(el) {
+          el.setAttribute('maxlength', item.max);
+          el.addEventListener('input', function() {
+            if (this.value.length >= item.max) {
+               showToast(`Oops! Can't enter more than ${item.max} characters`);
+            }
+          });
+        }
+      });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast-notification');
+      const msgSpan = document.getElementById('toast-message');
+      
+      if (!toast || !msgSpan) return;
+
+      msgSpan.textContent = message;
+      toast.classList.add('show');
+      
+      if (toastTimeout) clearTimeout(toastTimeout);
+      
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2500);
+    }
 
     function loadData() {
-      // Load subjects
       const savedSubjects = localStorage.getItem('subjectList');
       if (savedSubjects) {
         subjects = JSON.parse(savedSubjects);
@@ -560,21 +747,20 @@
         localStorage.setItem('subjectList', JSON.stringify(subjects));
       }
 
-      // Load backlog data
       const savedBacklog = localStorage.getItem('backlogData');
       if (savedBacklog) {
         backlogData = JSON.parse(savedBacklog);
       }
 
-      // Initialize missing subjects in backlog
       subjects.forEach(subject => {
-        if (!(subject.name in backlogData)) {
+        if (backlogData[subject.name] === undefined) {
           backlogData[subject.name] = 0;
         }
+        backlogData[subject.name] = parseInt(backlogData[subject.name]) || 0;
       });
+      
       saveBacklogData();
 
-      // Load user data
       const savedUserData = localStorage.getItem('userData');
       if (savedUserData) {
         userData = JSON.parse(savedUserData);
@@ -587,8 +773,7 @@
 
     function loadNotesData() {
       const savedNotes = localStorage.getItem('notesData');
-      const isFirstLoad = !savedNotes;
-
+      
       if (savedNotes) {
         notesData = JSON.parse(savedNotes);
       } else {
@@ -596,7 +781,7 @@
       }
       
       subjects.forEach(subject => {
-        if (!(subject.name in notesData)) {
+        if (!notesData[subject.name]) {
           notesData[subject.name] = preloadedNotes[subject.name] || [];
         }
       });
@@ -631,24 +816,27 @@
     function setRandomGreeting(name) {
       const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
       const greeting = randomMessage.replace('{name}', name.toUpperCase());
-      document.getElementById('greeting-text').textContent = greeting;
+      const el = document.getElementById('greeting-text');
+      if (el) el.textContent = greeting;
     }
 
     function render() {
       const grid = document.getElementById('subject-grid');
+      if (!grid) return;
       grid.innerHTML = '';
 
       const btnLectures = document.getElementById('btn-mode-lectures');
       const btnNotes = document.getElementById('btn-mode-notes');
+      const totalLabel = document.getElementById('total-pending-label');
       
       if (settings.mode === 'lectures') {
         btnLectures.classList.add('mode-btn-active');
         btnNotes.classList.remove('mode-btn-active');
-        document.getElementById('total-pending-label').textContent = 'Total Pending Lectures';
+        if(totalLabel) totalLabel.textContent = 'Total Pending Lectures';
       } else {
         btnNotes.classList.add('mode-btn-active');
         btnLectures.classList.remove('mode-btn-active');
-        document.getElementById('total-pending-label').textContent = 'Total Chapters Complete';
+        if(totalLabel) totalLabel.textContent = 'Total Chapters Complete';
       }
 
       // Render subject cards
@@ -658,8 +846,7 @@
         card.dataset.index = index;
         
         if (settings.mode === 'lectures') {
-          // --- LECTURE MODE RENDER ---
-          const count = backlogData[subject.name] || 0;
+          const count = parseInt(backlogData[subject.name]) || 0;
           card.innerHTML = `
             <div class="minus-btn text-white">−</div>
             <div class="plus-btn text-white">+</div>
@@ -668,27 +855,28 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
             </div>
+            <div class="color-btn text-white">🎨</div>
             <h2 class="text-xl sm:text-2xl font-bold mb-2">${subject.name}</h2>
             <div class="text-4xl sm:text-5xl font-extrabold mb-1">${count}</div>
-            <div class="text-sm opacity-90">lectures pending</div>
+            <div class="text-sm opacity-90 h-5"></div>
           `;
         } else {
-          // --- NOTES MODE RENDER ---
+          // NOTES MODE: No overlapping text
           const chapters = notesData[subject.name] || [];
           const completedCount = chapters.filter(c => c.completed).length;
           const totalCount = chapters.length;
-          // === FIXED: Changed class to 'plus-btn' to fix position ===
           card.innerHTML = `
             <div class="plus-btn"> 
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
             </div>
+            <div class="color-btn text-white">🎨</div>
             <h2 class="text-xl sm:text-2xl font-bold mb-2">${subject.name} Notes</h2>
             <div class="text-4xl sm:text-5xl font-extrabold mb-1">
               ${completedCount}<span class="text-3xl opacity-80">/${totalCount}</span>
             </div>
-            <div class="text-sm opacity-90">chapters complete</div>
+            <div class="text-sm opacity-90 h-5"></div>
           `;
         }
         grid.appendChild(card);
@@ -710,78 +898,231 @@
 
     function updateTotalBacklog() {
       const totalEl = document.getElementById('total-backlog');
-      let total = 0; // This will now store PENDING count for styling
+      if (!totalEl) return;
+
+      let total = 0; 
       
       if (settings.mode === 'lectures') {
-        total = Object.values(backlogData).reduce((sum, val) => sum + val, 0);
-        totalEl.innerHTML = total; // Display the pending number
+        total = Object.values(backlogData).reduce((sum, val) => sum + (parseInt(val) || 0), 0);
+        totalEl.innerHTML = total; 
       } else {
         let totalCompleted = 0;
         let totalChapters = 0;
         Object.values(notesData).forEach(chapters => {
-          totalChapters += chapters.length;
-          totalCompleted += chapters.filter(c => c.completed).length;
+          if (Array.isArray(chapters)) {
+            totalChapters += chapters.length;
+            totalCompleted += chapters.filter(c => c.completed).length;
+          }
         });
-        total = totalChapters - totalCompleted; // Pending count
+        total = totalChapters - totalCompleted;
         
-        // Display as X/Y
         totalEl.innerHTML = `
           ${totalCompleted}<span class="text-3xl opacity-80">/${totalChapters}</span>
         `;
       }
       
-      // Styling is based on PENDING count (total)
-      if (total === 0 && (settings.mode === 'lectures' || totalChapters > 0)) {
+      if (total === 0 && (settings.mode === 'lectures' || (settings.mode === 'notes' && total > 0))) {
         totalEl.className = 'text-5xl font-extrabold text-green-500';
       } else {
         totalEl.className = 'text-5xl font-extrabold text-blue-600';
       }
     }
 
-    function attachEventListeners() {
-      // Grid clicks (using event delegation)
-      document.getElementById('subject-grid').addEventListener('click', (e) => {
-        const card = e.target.closest('.subject-card');
-        const addCard = e.target.closest('#add-subject-card');
-        
-        if (addCard) {
-          openSubjectModal();
-          return;
-        }
-        if (!card) return;
-        
-        const index = parseInt(card.dataset.index);
-        const subject = subjects[index];
-        
-        // === FIXED: Check for 'edit-btn' in LECTURE mode ===
-        if (settings.mode === 'lectures' && e.target.closest('.edit-btn')) {
-          openSubjectModal(index);
-          return; 
-        }
-        
-        // === FIXED: Check for 'plus-btn' in NOTES mode ===
-        if (settings.mode === 'notes' && e.target.closest('.plus-btn')) {
-          openSubjectModal(index);
-          return;
-        }
-        
-        if (settings.mode === 'lectures') {
-          // --- LECTURE MODE CLICKS ---
-          if (e.target.closest('.plus-btn')) {
-            changeBacklog(subject.name, 1);
-          } else if (e.target.closest('.minus-btn')) {
-            changeBacklog(subject.name, -1);
-          } else {
-            openUpdateModal(subject.name);
+    function exportData() {
+      const data = {
+        subjects: subjects,
+        backlogData: backlogData,
+        notesData: notesData,
+        userData: userData,
+        settings: settings,
+        version: 1.2
+      };
+      
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+      const downloadAnchorNode = document.createElement('a');
+      const date = new Date().toISOString().split('T')[0];
+      
+      downloadAnchorNode.setAttribute("href", dataStr);
+      downloadAnchorNode.setAttribute("download", "backlog_backup_" + date + ".json");
+      document.body.appendChild(downloadAnchorNode);
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      
+      showToast("Data Exported Successfully!");
+    }
+
+    function importData(inputElement) {
+      const file = inputElement.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          
+          if (!importedData.subjects || !importedData.backlogData) {
+            showToast("Invalid Backup File!");
+            return;
           }
-        } else {
-          // --- NOTES MODE CLICKS ---
-          // Any other click opens the chapter modal
-          openChapterModal(subject.name);
+
+          subjects = importedData.subjects || [];
+          backlogData = importedData.backlogData || {};
+          notesData = importedData.notesData || notesData; 
+          userData = importedData.userData || userData;
+          
+          if (importedData.settings) {
+            settings = { ...settings, ...importedData.settings };
+          }
+
+          for (let key in backlogData) {
+             backlogData[key] = parseInt(backlogData[key]) || 0;
+          }
+
+          saveSubjects();
+          saveBacklogData();
+          saveNotesData();
+          saveSettings();
+          
+          if (userData) {
+            localStorage.setItem('userData', JSON.stringify(userData));
+            setRandomGreeting(userData.name);
+          } else {
+             localStorage.removeItem('userData');
+             document.getElementById('user-greeting').style.display = 'none';
+          }
+
+          render();
+          showToast("Data Imported Successfully!");
+          
+          document.getElementById('settings-modal').style.display = 'none';
+          
+        } catch (error) {
+          console.error(error);
+          showToast("Error reading file!");
         }
+      };
+      reader.readAsText(file);
+      inputElement.value = ''; 
+    }
+
+    // Open Color Picker
+    function openColorPicker(subjectIndex) {
+      currentEditingSubjectIndex = subjectIndex;
+      const grid = document.getElementById('color-grid');
+      grid.innerHTML = '';
+      
+      availableColors.forEach(colorClass => {
+         const div = document.createElement('div');
+         div.className = `color-swatch ${colorClass}`;
+         div.addEventListener('click', () => selectColor(colorClass));
+         grid.appendChild(div);
+      });
+      
+      document.getElementById('color-picker-modal').style.display = 'flex';
+    }
+    
+    // Apply Selected Color
+    function selectColor(colorClass) {
+      if (currentEditingSubjectIndex === null) return;
+      
+      subjects[currentEditingSubjectIndex].color = colorClass;
+      saveSubjects();
+      render();
+      
+      document.getElementById('color-picker-modal').style.display = 'none';
+      currentEditingSubjectIndex = null;
+    }
+
+    function attachEventListeners() {
+      const grid = document.getElementById('subject-grid');
+      if (grid) {
+        grid.addEventListener('click', (e) => {
+          const card = e.target.closest('.subject-card');
+          const addCard = e.target.closest('#add-subject-card');
+          
+          if (addCard) {
+            openSubjectModal();
+            return;
+          }
+          if (!card) return;
+          
+          const index = parseInt(card.dataset.index);
+          const subject = subjects[index];
+          if (!subject) return; 
+          
+          if (e.target.closest('.color-btn')) {
+            openColorPicker(index);
+            return; 
+          }
+
+          if (settings.mode === 'lectures' && e.target.closest('.edit-btn')) {
+            openSubjectModal(index);
+            return; 
+          }
+          
+          if (settings.mode === 'notes' && e.target.closest('.plus-btn')) {
+            openSubjectModal(index);
+            return;
+          }
+          
+          if (settings.mode === 'lectures') {
+            if (e.target.closest('.plus-btn')) {
+              changeBacklog(subject.name, 1);
+            } else if (e.target.closest('.minus-btn')) {
+              changeBacklog(subject.name, -1);
+            } else {
+              if (!e.target.closest('.edit-btn') && !e.target.closest('.color-btn')) {
+                 openUpdateModal(subject.name);
+              }
+            }
+          } else {
+             if (!e.target.closest('.plus-btn') && !e.target.closest('.color-btn')) {
+                openChapterModal(subject.name);
+             }
+          }
+        });
+      }
+      
+      document.getElementById('close-color-modal-btn').addEventListener('click', () => {
+         document.getElementById('color-picker-modal').style.display = 'none';
       });
 
-      // Mode Toggle Listeners
+      document.getElementById('export-data-btn').addEventListener('click', exportData);
+      
+      document.getElementById('import-data-btn').addEventListener('click', () => {
+        document.getElementById('settings-modal').style.display = 'none'; 
+        document.getElementById('import-warning-modal').style.display = 'flex';
+      });
+      
+      document.getElementById('cancel-import-btn').addEventListener('click', () => {
+        document.getElementById('import-warning-modal').style.display = 'none';
+        document.getElementById('settings-modal').style.display = 'flex'; 
+      });
+      
+      document.getElementById('confirm-import-btn').addEventListener('click', () => {
+        document.getElementById('import-warning-modal').style.display = 'none';
+        document.getElementById('file-upload').click();
+      });
+      
+      document.getElementById('file-upload').addEventListener('change', function() {
+        importData(this);
+      });
+
+      document.getElementById('reset-defaults-btn').addEventListener('click', () => {
+         document.getElementById('settings-modal').style.display = 'none';
+         document.getElementById('reset-warning-modal').style.display = 'flex';
+      });
+
+      document.getElementById('cancel-reset-btn').addEventListener('click', () => {
+         document.getElementById('reset-warning-modal').style.display = 'none';
+         document.getElementById('settings-modal').style.display = 'flex';
+      });
+
+      document.getElementById('confirm-reset-btn').addEventListener('click', () => {
+         localStorage.clear();
+         location.reload();
+      });
+
       document.getElementById('btn-mode-lectures').addEventListener('click', () => {
         if (settings.mode === 'lectures') return; 
         settings.mode = 'lectures';
@@ -796,12 +1137,10 @@
         render();
       });
 
-      // Settings button
       document.getElementById('settings-btn').addEventListener('click', () => {
         document.getElementById('settings-modal').style.display = 'flex';
       });
 
-      // Settings modal listeners
       document.getElementById('close-settings-modal-btn').addEventListener('click', () => {
         document.getElementById('settings-modal').style.display = 'none';
       });
@@ -821,7 +1160,6 @@
         document.getElementById('settings-modal').style.display = 'none';
       });
 
-      // Suggestions Button Listener
       document.getElementById('open-suggestions-btn').addEventListener('click', () => {
         document.getElementById('settings-modal').style.display = 'none';
         document.getElementById('suggestions-modal').style.display = 'flex';
@@ -830,8 +1168,6 @@
         document.getElementById('suggestions-modal').style.display = 'none';
       });
 
-
-      // Download modal
       document.getElementById('open-download-modal-btn').addEventListener('click', () => {
         document.getElementById('download-modal').style.display = 'flex';
       });
@@ -840,16 +1176,13 @@
       });
       document.getElementById('download-image-btn').addEventListener('click', downloadImage);
 
-      // Update backlog modal
       document.getElementById('close-modal-btn').addEventListener('click', () => {
         document.getElementById('modal').style.display = 'none';
       });
       document.getElementById('save-modal-btn').addEventListener('click', saveUpdateModal);
 
-      // User details modal
       document.getElementById('save-user-details-btn').addEventListener('click', saveUserDetails);
       
-      // Subject modal
       document.getElementById('close-subject-modal-btn').addEventListener('click', () => {
         document.getElementById('subject-modal').style.display = 'none';
       });
@@ -862,15 +1195,17 @@
         document.getElementById('confirm-modal').style.display = 'flex';
       });
 
-      // Confirm modal
       document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
         document.getElementById('confirm-modal').style.display = 'none';
       });
       document.getElementById('confirm-remove-btn').addEventListener('click', confirmRemoveSubject);
       
-      // Chapter Modal Listeners
       document.getElementById('close-chapter-modal-btn').addEventListener('click', () => {
         document.getElementById('chapter-modal').style.display = 'none';
+        if (chapterSortable) {
+          chapterSortable.destroy();
+          chapterSortable = null;
+        }
         render(); 
       });
       document.getElementById('add-chapter-btn').addEventListener('click', () => {
@@ -906,7 +1241,7 @@
     }
 
     function changeBacklog(subjectName, delta) {
-      const oldValue = backlogData[subjectName] || 0;
+      const oldValue = parseInt(backlogData[subjectName]) || 0;
       const newValue = Math.max(0, oldValue + delta);
       
       backlogData[subjectName] = newValue;
@@ -939,7 +1274,7 @@
     function saveUserDetails() {
       const name = document.getElementById('user-name-input').value.trim();
       if (!name) {
-        alert('Please enter your name');
+        showToast('Please enter your name');
         return;
       }
       
@@ -977,7 +1312,7 @@
       const editIndex = document.getElementById('subject-edit-index').value;
       
       if (!newName) {
-        alert('Subject name cannot be empty');
+        showToast('Subject name cannot be empty');
         return;
       }
       
@@ -987,7 +1322,7 @@
       });
       
       if (isDuplicate) {
-        alert('A subject with this name already exists');
+        showToast('A subject with this name already exists');
         return;
       }
       
@@ -1047,6 +1382,7 @@
       chapters.forEach((chapter, index) => {
         const item = document.createElement('div');
         item.className = 'chapter-item';
+        item.dataset.index = index; 
         item.innerHTML = `
           <input type="checkbox" data-index="${index}" ${chapter.completed ? 'checked' : ''}>
           <span class="ml-2 ${chapter.completed ? 'line-through text-gray-500' : ''}">${chapter.name}</span>
@@ -1062,11 +1398,26 @@
       document.getElementById('chapter-name-input').value = '';
       renderChapterList(subjectName);
       document.getElementById('chapter-modal').style.display = 'flex';
+
+      const listEl = document.getElementById('chapter-list');
+      if (listEl) {
+        chapterSortable = new Sortable(listEl, {
+          animation: 150,
+          delay: 200,
+          delayOnTouchOnly: true,
+          onEnd: (evt) => {
+            moveItemInArray(notesData[subjectName], evt.oldIndex, evt.newIndex);
+            saveNotesData();
+            renderChapterList(subjectName);
+          }
+        });
+      }
     }
 
 
     function checkCelebration(subjectName, oldValue, newValue) {
       if (!settings.animations) return;
+      if (typeof confetti !== 'function') return;
 
       if (settings.mode === 'lectures' && oldValue > 0 && newValue === 0) {
         triggerCelebration(`${subjectName.toUpperCase()} BACKLOG COMPLETE!`);
@@ -1136,6 +1487,11 @@
     function captureAndDownload(filename, callback) {
       const downloadMsg = document.getElementById('download-message');
       
+      if (typeof html2canvas !== 'function') {
+        downloadMsg.textContent = 'Error: html2canvas not loaded';
+        return;
+      }
+
       html2canvas(document.getElementById('capture-area'), {
         scale: 2,
         backgroundColor: '#f3f4f6',
@@ -1149,7 +1505,11 @@
             if (el) el.style.display = 'none';
           });
           
-          const buttonClasses = ['.edit-btn', '.plus-btn', '.minus-btn'];
+          // HIDE MODE TOGGLE
+          const modeToggle = clonedDoc.getElementById('mode-toggle-area');
+          if (modeToggle) modeToggle.style.display = 'none';
+
+          const buttonClasses = ['.edit-btn', '.plus-btn', '.minus-btn', '.color-btn'];
           buttonClasses.forEach(selector => {
             clonedDoc.querySelectorAll(selector).forEach(btn => {
               btn.style.display = 'none';
@@ -1158,6 +1518,14 @@
           
           const addCard = clonedDoc.getElementById('add-subject-card');
           if (addCard) addCard.style.display = 'none';
+
+          // ADD PADDING TO SCREENSHOT
+          const captureArea = clonedDoc.getElementById('capture-area');
+          if (captureArea) {
+             captureArea.style.padding = '50px';
+             captureArea.style.width = '100%';
+             captureArea.style.height = 'auto';
+          }
         }
 
       }).then(canvas => {
